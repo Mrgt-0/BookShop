@@ -5,15 +5,18 @@ import java.util.Scanner;
 public class BuilderController {
     private Builder builder;
     private Navigator navigator;
+
     public BuilderController(Builder builder, Navigator navigator){
         this.builder=builder;
         this.navigator=navigator;
     }
+
     public void run(){
         Menu menu = isAdmin() ? builder.buildAdminMenu(navigator) : builder.buildUserMenu();
         navigator.printMenu();
         navigator.navigate(menu);
     }
+
     private boolean isAdmin() {
         System.out.print("Введи 1 если вы администратор\n" +
                 "Введи 2 если вы пользователь\n" +

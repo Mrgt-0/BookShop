@@ -1,16 +1,21 @@
 package ConsoleUI;
 
+import java.util.ArrayList;
+
 public class Menu {
-    private MenuItem[] items;
+    private ArrayList<MenuItem> items;
     private String title;
-    public Menu(String title, MenuItem[] items){
+
+    public Menu(String title, ArrayList<MenuItem> items){
         this.title=title;
         this.items=items;
     }
+
     public String getTitle(){
         return title;
     }
-    public MenuItem[] getItems(){
+
+    public ArrayList<MenuItem> getItems(){
         return items;
     }
 }

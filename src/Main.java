@@ -13,7 +13,9 @@ import java.util.ArrayList;
 public class Main {
     private static BookStore bookStore = new BookStore();
     public static void main(String[] args) {
+
         ArrayList<Book> books=new ArrayList<>();
+
         Book warAndPeace=new Book("Война и мир", BookStatus.IN_STOCK, LocalDate.of(1873, 1, 10), 500,
                 "роман-эпопея Льва Толстого, посвящённый жизни российского общества во времена правления Александра I.");
         Book crimeAndPunishment=new Book("Преступление и наказание", BookStatus.IN_STOCK, LocalDate.of(1866, 7, 22), 450,
@@ -31,7 +33,7 @@ public class Main {
         bookStoreController.addBook(annaKarenina);
 
         Navigator navigator=new Navigator();
-        Builder builder=new Builder(bookStore, navigator);
+        Builder builder=new Builder(bookStore);
         BuilderController builderController = new BuilderController(builder, navigator);
         builderController.run();
     }
