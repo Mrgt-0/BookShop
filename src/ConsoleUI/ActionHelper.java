@@ -11,6 +11,7 @@ public class ActionHelper {
         else
             return "Название книги не может быть пустым";
     }
+
     public LocalDate readDate(){
         LocalDate date;
         int year, month, day;
@@ -28,10 +29,21 @@ public class ActionHelper {
             return null;
         }
     }
+
     public int readPrice(){
-        System.out.print("Введите цену книги: ");
-        return Integer.parseInt(System.console().readLine());
+        int price;
+        while (true) {
+            try {
+                System.out.print("Введите цену книги: ");
+                price = Integer.parseInt(System.console().readLine());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Ошибка. Нужно ввести число");
+            }
+        }
+        return price;
     }
+
     public String readDescription(){
         System.out.print("Введите описание книги: ");
         return System.console().readLine();

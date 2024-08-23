@@ -7,6 +7,7 @@ public class OrderController {
     public OrderController(BookStore bookStore){
         this.bookStore=bookStore;
     }
+
     public void createOrder(Book book, OrderStatus status) {
         if (book.getStatus() == BookStatus.IN_STOCK) {
             Order order=new Order(book, status);
@@ -16,6 +17,7 @@ public class OrderController {
             System.out.println("Книга " + book.getTitle() + " недоступна для заказа.");
         }
     }
+
     public void updateStatus(Order order, OrderStatus status) {
         order.setStatus(status);
         System.out.println("Статус заказа на книгу " + order.getBook().getTitle() + " изменен на " + status + ".");

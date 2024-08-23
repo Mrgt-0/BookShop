@@ -1,5 +1,6 @@
 package BookStoreController;
 
+import java.io.FileReader;
 import java.time.LocalDate;
 import java.util.Optional;
 import BookStoreModel.*;
@@ -12,10 +13,12 @@ public class BookStoreController {
         this.bookStore=bookStore;
         this.orderController=orderController;
     }
+
     public void addBook(Book book) {
         bookStore.getBookInventory().put(book.getTitle(), book);
         RequestController.fulfillPendingRequests(bookStore);
     }
+
     public void removeBook(String title) {
         if(bookStore.getBookInventory().containsKey(title)){
             Book book = bookStore.getBookInventory().get(title);
@@ -24,18 +27,21 @@ public class BookStoreController {
         else
             System.out.println("Книга с таким названием не найдена");
     }
+
     public void updateOrderStatus(String bookTitle, OrderStatus status) {
         bookStore.getOrders().stream()
                 .filter(order -> order.getBook().getTitle().equals(bookTitle))
                 .findFirst()
                 .ifPresent(order -> orderController.updateStatus(order, status));
     }
+
     public void cancelOrder(String bookTitle) {
         bookStore.getOrders().stream()
                 .filter(order -> order.getBook().getTitle().equals(bookTitle))
                 .findFirst()
                 .ifPresent(orderController::cancelOrder);
     }
+
     public void placeOrder(String title) {
         Book book = bookStore.getBookInventory().get(title);
         if (book != null && book.getStatus() == BookStatus.IN_STOCK) {
@@ -49,6 +55,7 @@ public class BookStoreController {
         }else
             System.out.println("Книга с таким названием не найдена");
     }
+
     public void fulfillOrder(String title){
         Optional<Order> orderOptional = bookStore.getOrders().stream()
                 .filter(order -> order.getBook().getTitle().equals(title) && order.getStatus() == OrderStatus.NEW)

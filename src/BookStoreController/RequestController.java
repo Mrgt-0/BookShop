@@ -10,6 +10,7 @@ public class RequestController{
     public RequestController(Book book){
         request=new Request(book);
     }
+
     public void requestBook(BookStore bookStore, String bookTitle) {
         Book book = bookStore.getBookInventory().get(bookTitle);
         if (book != null) {
@@ -24,6 +25,7 @@ public class RequestController{
         } else
             System.out.println("Книга с названием " + bookTitle + " не найдена в инвентаре.");
     }
+
     public static void fulfillRequest(BookStore bookStore, Request request) {
         if (request.getBook().getStatus() == BookStatus.IN_STOCK) {
             OrderController orderController = new OrderController(bookStore);
@@ -32,6 +34,7 @@ public class RequestController{
         } else
             System.out.println("Книга " + request.getBook().getTitle() + " недоступна для заказа.");
     }
+
     public static void fulfillPendingRequests(BookStore bookStore) {
         List<Request> requestsCopy = new ArrayList<>(bookStore.getRequests());
         requestsCopy.forEach(request -> fulfillRequest(bookStore, request));
