@@ -6,10 +6,13 @@ import BookStoreModel.*;
 import Status.*;
 
 public class RequestController{
+    private BookStoreSerializable bookStoreSerializable;
     private Request request;
-    public RequestController(Book book){
+    public RequestController(BookStore bookStore, Book book){
+        bookStoreSerializable=new BookStoreSerializable(bookStore);
         request=new Request(book);
     }
+
     public void requestBook(BookStore bookStore, String bookTitle) {
         Book book = bookStore.getBookInventory().get(bookTitle);
         if (book != null) {
@@ -21,9 +24,11 @@ public class RequestController{
                 OrderController order = new OrderController(bookStore);
                 order.createOrder(book, OrderStatus.NEW);
             }
+            bookStoreSerializable.saveState();
         } else
             System.out.println("Книга с названием " + bookTitle + " не найдена в инвентаре.");
     }
+
     public static void fulfillRequest(BookStore bookStore, Request request) {
         if (request.getBook().getStatus() == BookStatus.IN_STOCK) {
             OrderController orderController = new OrderController(bookStore);
@@ -32,6 +37,7 @@ public class RequestController{
         } else
             System.out.println("Книга " + request.getBook().getTitle() + " недоступна для заказа.");
     }
+
     public static void fulfillPendingRequests(BookStore bookStore) {
         List<Request> requestsCopy = new ArrayList<>(bookStore.getRequests());
         requestsCopy.forEach(request -> fulfillRequest(bookStore, request));
