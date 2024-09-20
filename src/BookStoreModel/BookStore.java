@@ -4,8 +4,13 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import Config.ConfigProperty;
+import DI.Inject;
+import DI.Singleton;
 import Status.*;
 
+@Singleton
 public class BookStore implements Serializable{
     Map<String, Book> bookInventory;
     private List<Order> orders;
@@ -13,30 +18,34 @@ public class BookStore implements Serializable{
     private double totalEarnings=0.0;
     private int totalOrdersFulfilled=0;
 
-    public BookStore() {
-        this.bookInventory = new HashMap<>();
-        this.orders = new ArrayList<>();
-        this.requests = new ArrayList<>();
+    public BookStore(Map<String, Book> bookInventory, List<Order> orders, List<Request> requests) {
+        this.bookInventory = bookInventory;
+        this.orders = orders;
+        this.requests = requests;
     }
 
     public Map<String, Book> getBookInventory() {
-        return bookInventory;
+        if (this.bookInventory == null) {
+            this.bookInventory = new HashMap<>();
+        }
+        return this.bookInventory;
     }
 
     public List<Request> getRequests() {
-        return requests;
+        if (this.requests == null) {
+            this.requests = new ArrayList<>();
+        }
+        return this.requests;
     }
 
-    public List<Order> getOrders() {
-        return orders;
+    public List<Order> getOrders;
+
+    public void setTotalEarnings(double totalEarnings){
+        this.totalEarnings=totalEarnings;
     }
 
-    public void setTotalEarnings(double value) {
-        this.totalEarnings+=value;
-    }
-
-    public void setTotalOrdersFulfilled(int value) {
-        this.totalOrdersFulfilled+=value;
+    public void setTotalOrdersFulfilled(int totalOrdersFulfilled){
+        this.totalOrdersFulfilled=totalOrdersFulfilled;
     }
 
     public List<Order> getFullfilledOrders(LocalDate startDate, LocalDate endDate, Comparator<Order> comparator) {

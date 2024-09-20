@@ -2,6 +2,9 @@ package BookStoreModel;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+
+import Config.ConfigProperty;
+import DI.Singleton;
 import Status.*;
 
 public class Book implements Serializable{

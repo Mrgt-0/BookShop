@@ -1,6 +1,11 @@
 package BookStoreModel;
 
+import Config.ConfigProperty;
+import DI.Inject;
+import DI.Singleton;
+
 import java.io.Serializable;
+import java.lang.reflect.Type;
 
 public class Request implements Serializable {
     private int requestId;
@@ -21,13 +26,13 @@ public class Request implements Serializable {
         this.requestId=requestId;
     }
 
-    public Book getBook() {
+    public Book getBook(){
         return book;
     }
 
     public int getRequestCount(){
         return requestCount;
-    }
+    };
 
     public void setRequestCount(int requestCount){
         this.requestCount=requestCount;

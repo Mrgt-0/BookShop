@@ -1,9 +1,15 @@
 package ConsoleUI;
 
+import DI.Inject;
+import DI.Singleton;
+
 import java.util.Scanner;
 
+@Singleton
 public class BuilderController {
+    @Inject
     private Builder builder;
+    @Inject
     private Navigator navigator;
 
     public BuilderController(Builder builder, Navigator navigator){

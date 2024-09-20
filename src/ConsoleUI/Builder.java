@@ -6,6 +6,8 @@ import BookStoreModel.Book;
 import BookStoreModel.BookStore;
 import BookStoreModel.Order;
 import BookStoreModel.Request;
+import DI.Inject;
+import DI.Singleton;
 import Property.Util;
 import Status.BookStatus;
 
@@ -15,13 +17,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+@Singleton
 public class Builder {
+    @Inject
     private BookStore bookStore;
+    @Inject
     private BookStoreController bookStoreController;
+    @Inject
     private OrderController orderController;
+    @Inject
     private Navigator navigator;
+    @Inject
     private ActionHelper action;
+    @Inject
     private Importer importer;
+    @Inject
     private Exporter exporter;
 
     public Builder(BookStore bookStore){
@@ -90,7 +100,7 @@ public class Builder {
         items.add(new MenuItem("Импорт заказов", ()->importer.ordersImporter()));
         items.add(exportRequestMenuItem);
         items.add(new MenuItem("Импорт запросов", ()->importer.requestsImporter()));
-        items.add(new MenuItem("Посмотреть все выполненные заказы за период", ()->displayeExecuteOrders(bookStore.getOrders())));
+        items.add(new MenuItem("Посмотреть все выполненные заказы за период", ()->displayeExecuteOrders(bookStore.getOrders)));
         items.add(new MenuItem("Посмотреть не проданный книги", ()->displayOldBooksMenu(bookStore.getBookInventory())));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
 
@@ -109,8 +119,8 @@ public class Builder {
 
     private Menu buildExportOrdersMenu(Menu nextMenu){
         List<MenuItem> items=new ArrayList<>();
-        items.add(new MenuItem("Экспорт заказов в консоль", ()->displayOrderMenu(bookStore.getOrders())));
-        items.add(new MenuItem("Экспорт заказов в файл", ()->exporter.ordersExport(bookStore.getOrders())));
+        items.add(new MenuItem("Экспорт заказов в консоль", ()->displayOrderMenu(bookStore.getOrders)));
+        items.add(new MenuItem("Экспорт заказов в файл", ()->exporter.ordersExport(bookStore.getOrders)));
         items.add(new MenuItem("Назад", ()->navigator.navigate(nextMenu)));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
 
@@ -230,12 +240,14 @@ public class Builder {
         List<MenuItem> sortItems=new ArrayList<>();
         sortItems.add(new MenuItem("по дате: ", ()->{
             bookStore.getFullfilledOrders(startDate, endDate, Comparator.comparing(Order::getExecutionDate)).forEach(order -> {
-                System.out.println("Книга: " + order.getBook().getTitle() + ", Дата заказа: " + order.getExecutionDate() + ", Цена: " + order.getBook().getPrice());
+                System.out.println("Книга: " + order.getBook().getTitle() + ", Дата заказа: " +
+                        order.getExecutionDate() + ", Цена: " + order.getBook().getPrice());
             });
         }));
         sortItems.add(new MenuItem("по цене: ", ()->{
             bookStore.getFullfilledOrders(startDate, endDate, Comparator.comparing(Order::getOrderPrice)).forEach(order -> {
-                System.out.println("Книга: " + order.getBook().getTitle() + ", Дата заказа: " + order.getExecutionDate() + ", Цена: " + order.getBook().getPrice());
+                System.out.println("Книга: " + order.getBook().getTitle() + ", Дата заказа: " +
+                        order.getExecutionDate() + ", Цена: " + order.getBook().getPrice());
             });
         }));
         sortItems.add(new MenuItem("назад", ()->{}));

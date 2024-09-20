@@ -3,12 +3,15 @@ package BookStoreController;
 import java.time.LocalDate;
 import java.util.Optional;
 import BookStoreModel.*;
+import DI.Inject;
+import DI.Singleton;
 import Property.Util;
 import Status.*;
-
+@Singleton
 public class BookStoreController {
     private BookStoreSerializable bookStoreSerializable;
     private BookStore bookStore;
+    @Inject
     private OrderController orderController;
     public BookStoreController(BookStore bookStore, OrderController orderController){
         this.bookStore=bookStore;
@@ -36,7 +39,7 @@ public class BookStoreController {
 
     public void updateOrderStatus(String bookTitle, OrderStatus status) {
         if(Util.isMarkOrdersAsCompleted()) {
-            bookStore.getOrders().stream()
+            bookStore.getOrders.stream()
                     .filter(order -> order.getBook().getTitle().equals(bookTitle))
                     .findFirst()
                     .ifPresent(order -> orderController.updateStatus(order, status));
@@ -46,7 +49,7 @@ public class BookStoreController {
     }
 
     public void cancelOrder(String bookTitle) {
-        bookStore.getOrders().stream()
+        bookStore.getOrders.stream()
                 .filter(order -> order.getBook().getTitle().equals(bookTitle))
                 .findFirst()
                 .ifPresent(orderController::cancelOrder);
@@ -57,7 +60,7 @@ public class BookStoreController {
         Book book = bookStore.getBookInventory().get(title);
         if (book != null && book.getStatus() == BookStatus.IN_STOCK) {
             Order order = new Order(book, OrderStatus.NEW);
-            bookStore.getOrders().add(order);
+            bookStore.getOrders.add(order);
             System.out.println("Заказ на книгу: " + book.getTitle());
             bookStoreSerializable.saveState();
         } else if(book!=null){
@@ -70,18 +73,18 @@ public class BookStoreController {
     }
 
     public void fulfillOrder(String title){
-        Optional<Order> orderOptional = bookStore.getOrders().stream()
+        Optional<Order> orderOptional = bookStore.getOrders.stream()
                 .filter(order -> order.getBook().getTitle().equals(title) && order.getStatus() == OrderStatus.NEW)
                 .findFirst();
         if (orderOptional.isPresent()) {
-                Order order = orderOptional.get();
-                if(Util.isMarkOrdersAsCompleted()) {
-                    orderController.updateStatus(order, OrderStatus.FULFILLED);
-                    order.setExecutionDate(LocalDate.now());
-                    bookStore.setTotalEarnings(order.getBook().getPrice());
-                    bookStore.setTotalOrdersFulfilled(1);
-                }else
-                    System.out.println("Заказ на книгу " + order.getBook().getTitle() + " ожидает выполнения.");
+            Order order = orderOptional.get();
+            if (Util.isMarkOrdersAsCompleted()) {
+                orderController.updateStatus(order, OrderStatus.FULFILLED);
+                order.setExecutionDate(LocalDate.now());
+                bookStore.setTotalEarnings(order.getBook().getPrice());
+                bookStore.setTotalOrdersFulfilled(1);
+            } else
+                System.out.println("Заказ на книгу " + order.getBook().getTitle() + " ожидает выполнения.");
             bookStoreSerializable.saveState();
         }
     }
