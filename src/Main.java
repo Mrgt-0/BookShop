@@ -1,45 +1,62 @@
-import BookStoreModel.Book;
+import BookStoreController.*;
 import BookStoreModel.BookStore;
 import BookStoreModel.BookStoreSerializable;
+import BookStoreModel.Order;
 import ConsoleUI.Builder;
-import BookStoreController.BookStoreController;
-import BookStoreController.OrderController;
 import ConsoleUI.BuilderController;
 import ConsoleUI.Navigator;
 import DI.DependencyInjector;
-import Status.BookStatus;
+import Datebase.*;
+import Repository.BookRepository;
+import Repository.OrderRepository;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
+import javax.sql.DataSource;
+import java.sql.*;
+import Status.*;
 
 public class Main {
     private static BookStore bookStore = DependencyInjector.getInstance(BookStore.class);
+
     public static void main(String[] args) {
+        try {
+            try (Connection connection = getConnection()) {
+                connection.setAutoCommit(false);
 
-        ArrayList<Book> books=new ArrayList<>();
+                DatabaseInitializer databaseInitializer = new DatabaseInitializer();
+                databaseInitializer.initializeDatabase();
 
-        Book warAndPeace=new Book("Война и мир", BookStatus.IN_STOCK, LocalDate.of(1873, 1, 10), 500,
-                "роман-эпопея Льва Толстого, посвящённый жизни российского общества во времена правления Александра I.");
-        Book crimeAndPunishment=new Book("Преступление и наказание", BookStatus.IN_STOCK, LocalDate.of(1866, 7, 22), 450,
-                "В романе рассказывается об отчуждении студента Раскольникова, который решает совершить идеальное преступление, " +
-                        "чтобы философски доказать своё превосходство над другими. В романе прослеживаются глубины его душевного распада, когда он приходит к пониманию психологических последствий того, что он убийца.");
-        Book annaKarenina=new Book("Анна Каренина", BookStatus.OUT_OF_STOCK, LocalDate.of(1875, 11, 9), 390,
-                "это трагическая история любви замужней женщины и офицера Алексея Вронского на фоне счастливого брака " +
-                        "Константина Левина и Кити Щербацкой. Помимо размышлений об отношениях героев, Толстой в романе показывает масштабную панораму жизни и нравов России второй половины XIX века и делает множество " +
-                        "психологических и философских отступлений, превращая семейную драму в монументальный роман о вечных темах и проблемах.");
+                BookRepository bookRepository = new BookRepository();
+                OrderRepository orderRepository = new OrderRepository();
+                OrderController orderController = new OrderController(bookStore);
+                BookStoreController bookStoreController = new BookStoreController(bookStore, orderController);
 
-        OrderController orderController=new OrderController(bookStore);
-        BookStoreController bookStoreController=new BookStoreController(bookStore, orderController);
-        bookStoreController.addBook(warAndPeace);
-        bookStoreController.addBook(crimeAndPunishment);
-        bookStoreController.addBook(annaKarenina);
+                bookStoreController.placeOrder("Война и мир");
+                bookStoreController.placeOrder("Преступление и наказание");
 
-        Navigator navigator=new Navigator();
-        Builder builder=new Builder(bookStore);
-        BuilderController builderController = new BuilderController(builder, navigator);
-        builderController.run();
+                connection.commit();
 
-        BookStoreSerializable bookStoreSerializable=new BookStoreSerializable(bookStore);
-        bookStoreSerializable.saveState();
+                Navigator navigator = new Navigator();
+                Builder builder = new Builder(bookStore);
+                BuilderController builderController = new BuilderController(builder, navigator);
+                builderController.run();
+
+                BookStoreSerializable bookStoreSerializable = new BookStoreSerializable(bookStore);
+                bookStoreSerializable.saveState();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Connection getConnection() {
+        String url = "jdbc:mysql://localhost:3306/your_database";
+        String username = "your_username";
+        String password = "your_password";
+
+        try {
+            return DriverManager.getConnection(url, username, password);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get connection", e);
+        }
     }
 }

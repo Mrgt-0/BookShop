@@ -139,7 +139,7 @@ public class Builder {
 
     private Menu buildAddBookMenu(){
         List<MenuItem> items=new ArrayList<>();
-        items.add(new MenuItem("Данные книги", ()->bookStoreController.addBook(new Book(action.readBookTitle(), BookStatus.IN_STOCK,
+        items.add(new MenuItem("Данные книги", ()->bookStoreController.addBook(new Book(action.readBookTitle(), action.readBookAuthor(), BookStatus.IN_STOCK,
                 action.readDate(), action.readPrice(), action.readDescription()))));
         items.add(new MenuItem("Назад", ()->{}));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
