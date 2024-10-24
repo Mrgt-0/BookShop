@@ -1,45 +1,49 @@
-import BookStoreModel.Book;
+import BookStoreController.*;
 import BookStoreModel.BookStore;
 import BookStoreModel.BookStoreSerializable;
 import ConsoleUI.Builder;
-import BookStoreController.BookStoreController;
-import BookStoreController.OrderController;
 import ConsoleUI.BuilderController;
 import ConsoleUI.Navigator;
 import DI.DependencyInjector;
-import Status.BookStatus;
+import Datebase.*;
+import Repository.BookRepository;
+import Repository.OrderRepository;
+import Repository.RequestRepository;
+import Status.*;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Main {
-    private static BookStore bookStore = DependencyInjector.getInstance(BookStore.class);
     public static void main(String[] args) {
+        BookStore bookStore=new BookStore();
 
-        ArrayList<Book> books=new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            connection.setAutoCommit(false);
 
-        Book warAndPeace=new Book("Война и мир", BookStatus.IN_STOCK, LocalDate.of(1873, 1, 10), 500,
-                "роман-эпопея Льва Толстого, посвящённый жизни российского общества во времена правления Александра I.");
-        Book crimeAndPunishment=new Book("Преступление и наказание", BookStatus.IN_STOCK, LocalDate.of(1866, 7, 22), 450,
-                "В романе рассказывается об отчуждении студента Раскольникова, который решает совершить идеальное преступление, " +
-                        "чтобы философски доказать своё превосходство над другими. В романе прослеживаются глубины его душевного распада, когда он приходит к пониманию психологических последствий того, что он убийца.");
-        Book annaKarenina=new Book("Анна Каренина", BookStatus.OUT_OF_STOCK, LocalDate.of(1875, 11, 9), 390,
-                "это трагическая история любви замужней женщины и офицера Алексея Вронского на фоне счастливого брака " +
-                        "Константина Левина и Кити Щербацкой. Помимо размышлений об отношениях героев, Толстой в романе показывает масштабную панораму жизни и нравов России второй половины XIX века и делает множество " +
-                        "психологических и философских отступлений, превращая семейную драму в монументальный роман о вечных темах и проблемах.");
+            DatabaseInitializer databaseInitializer = new DatabaseInitializer();
 
-        OrderController orderController=new OrderController(bookStore);
-        BookStoreController bookStoreController=new BookStoreController(bookStore, orderController);
-        bookStoreController.addBook(warAndPeace);
-        bookStoreController.addBook(crimeAndPunishment);
-        bookStoreController.addBook(annaKarenina);
+            BookRepository bookRepository = DependencyInjector.getInstance(BookRepository.class);
+            OrderRepository orderRepository = DependencyInjector.getInstance(OrderRepository.class);
+            RequestRepository requestRepository = DependencyInjector.getInstance(RequestRepository.class);
 
-        Navigator navigator=new Navigator();
-        Builder builder=new Builder(bookStore);
-        BuilderController builderController = new BuilderController(builder, navigator);
-        builderController.run();
+            OrderController orderController = new OrderController(bookStore, orderRepository);
+            BookStoreController bookStoreController = new BookStoreController(bookStore);
 
-        BookStoreSerializable bookStoreSerializable=new BookStoreSerializable(bookStore);
-        bookStoreSerializable.saveState();
+            bookStoreController.placeOrder("Война и мир");
+            bookStoreController.placeOrder("Преступление и наказание");
+
+            connection.commit();
+
+            Navigator navigator = new Navigator();
+            Builder builder = new Builder(bookStore);
+            BuilderController builderController = new BuilderController(builder, navigator);
+            builderController.run();
+
+            BookStoreSerializable bookStoreSerializable = new BookStoreSerializable(bookStore);
+            bookStoreSerializable.saveState();
+        } catch (SQLException | ExceptionInInitializerError e) {
+            throw new RuntimeException("SQL exception: ", e);
+        }
     }
 }

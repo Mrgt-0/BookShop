@@ -12,6 +12,15 @@ public class ActionHelper {
             return "Название книги не может быть пустым";
     }
 
+    public String readBookAuthor(){
+        System.out.print("Введите имя автора: ");
+        String input = System.console().readLine();
+        if(input.length()>0)
+            return input;
+        else
+            return "Имя автора книги не может быть пустым";
+    }
+
     public LocalDate readDate(){
         LocalDate date;
         int year, month, day;
