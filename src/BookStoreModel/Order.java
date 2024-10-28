@@ -3,9 +3,6 @@ package BookStoreModel;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-import Config.ConfigProperty;
-import DI.Inject;
-import DI.Singleton;
 import Status.*;
 
 public class Order implements Serializable {
@@ -14,12 +11,18 @@ public class Order implements Serializable {
     private Book book;
     private OrderStatus orderStatus;
     private LocalDate executionDate;
-    private int orderPrice;
+    private Double orderPrice;
 
     public Order(Book book, OrderStatus status){
         this.book=book;
         this.orderStatus=status;
         this.orderId=++idIncrement;
+    }
+
+    public Order(OrderStatus orderStatus, LocalDate executionDate, Double orderPrice){
+        this.orderStatus=orderStatus;
+        this.executionDate=executionDate;
+        this.orderPrice=orderPrice;
     }
 
     public int getOrderId(){
@@ -50,11 +53,11 @@ public class Order implements Serializable {
         this.executionDate=executionDate;
     }
 
-    public int getOrderPrice(){
+    public Double getOrderPrice(){
         return orderPrice;
     }
 
-    public void setOrderPrice(int orderPrice){
+    public void setOrderPrice(Double orderPrice){
         this.orderPrice=orderPrice;
     }
 }

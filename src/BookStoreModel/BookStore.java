@@ -18,10 +18,10 @@ public class BookStore implements Serializable{
     private double totalEarnings=0.0;
     private int totalOrdersFulfilled=0;
 
-    public BookStore(Map<String, Book> bookInventory, List<Order> orders, List<Request> requests) {
-        this.bookInventory = bookInventory;
-        this.orders = orders;
-        this.requests = requests;
+    public BookStore() {
+        this.bookInventory = new HashMap<>();
+        this.orders = new ArrayList<>();
+        this.requests = new ArrayList<>();
     }
 
     public Map<String, Book> getBookInventory() {
@@ -32,13 +32,16 @@ public class BookStore implements Serializable{
     }
 
     public List<Request> getRequests() {
-        if (this.requests == null) {
+        if (this.requests == null)
             this.requests = new ArrayList<>();
-        }
         return this.requests;
     }
 
-    public List<Order> getOrders;
+    public List<Order> getOrders(){
+        if(this.orders == null)
+            this.orders = new ArrayList<>();
+        return this.orders;
+    }
 
     public void setTotalEarnings(double totalEarnings){
         this.totalEarnings=totalEarnings;

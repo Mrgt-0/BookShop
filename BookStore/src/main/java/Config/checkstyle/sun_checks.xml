@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Module name="Checker">
+    <Module name="TreeWalker">
+        <Module name="FinalLocalVariable"/>
+        <Module name="FinalParameters"/>
+        <Module name="HideUtilityClassConstructor"/>
+        <Module name="NeedBraces"/>
+        <Module name="WhitespaceAround">
+            <Property name="tokens" value="AT, NEWLINE, EQUAL, METHOD_REF, LITERAL, COMMA" />
+        </Module>
+        <Module name="EmptyMethod"/>
+        <Module name="EmptyStatement"/>
+        <Module name="JavadocType"/>
+        <Module name="JavadocMethod"/>
+        <Module name="TrailingComment"/>
+        <Module name="NoWhitespaceAfter"/>
+    </Module>
+</Module>

@@ -26,13 +26,14 @@ public class Importer {
             String line = reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] bookData = line.split(",");
-                if (bookData.length == 6) {
+                if (bookData.length == 7) {
                     String title = bookData[1];
-                    BookStatus status = BookStatus.valueOf(bookData[2].toUpperCase());
-                    LocalDate publishDate = LocalDate.parse(bookData[3]);
-                    double price = Double.parseDouble(bookData[4]);
-                    String description = bookData[5];
-                    Book book = new Book(title, status, publishDate, price, description);
+                    String author = bookData[2];
+                    BookStatus status = BookStatus.valueOf(bookData[3].toUpperCase());
+                    LocalDate publishDate = LocalDate.parse(bookData[4]);
+                    double price = Double.parseDouble(bookData[5]);
+                    String description = bookData[6];
+                    Book book = new Book(title, author, status, publishDate, price, description);
                     book.setBookId(Integer.parseInt(bookData[0]));
                     importedBooks.put(book.getTitle(), book);
                 } else
@@ -71,7 +72,7 @@ public class Importer {
                         Order order = new Order(book, status);
                         order.setOrderId(id);
                         order.setExecutionDate(executionDate);
-                        order.setOrderPrice(orderPrice);
+                        order.setOrderPrice((double) orderPrice);
                         orders.add(order);
                     } else
                         System.out.println("Book not found in inventory: " + bookTitle);

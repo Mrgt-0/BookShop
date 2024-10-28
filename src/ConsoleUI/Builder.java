@@ -9,6 +9,9 @@ import BookStoreModel.Request;
 import DI.Inject;
 import DI.Singleton;
 import Property.Util;
+import Repository.BookRepository;
+import Repository.OrderRepository;
+import Repository.RequestRepository;
 import Status.BookStatus;
 
 import java.time.LocalDate;
@@ -25,6 +28,13 @@ public class Builder {
     private BookStoreController bookStoreController;
     @Inject
     private OrderController orderController;
+
+    @Inject
+    private BookRepository bookRepository;
+    @Inject
+    private OrderRepository orderRepository;
+    @Inject
+    private RequestRepository requestRepository;
     @Inject
     private Navigator navigator;
     @Inject
@@ -37,8 +47,8 @@ public class Builder {
     public Builder(BookStore bookStore){
         this.bookStore=bookStore;
         this.navigator=new Navigator();
-        orderController=new OrderController(bookStore);
-        bookStoreController=new BookStoreController(bookStore, orderController);
+        orderController=new OrderController(bookStore, orderRepository);
+        bookStoreController=new BookStoreController(bookStore, orderController, bookRepository, requestRepository);
         exporter=new Exporter();
         importer=new Importer();
         action=new ActionHelper();
@@ -100,7 +110,7 @@ public class Builder {
         items.add(new MenuItem("Импорт заказов", ()->importer.ordersImporter()));
         items.add(exportRequestMenuItem);
         items.add(new MenuItem("Импорт запросов", ()->importer.requestsImporter()));
-        items.add(new MenuItem("Посмотреть все выполненные заказы за период", ()->displayeExecuteOrders(bookStore.getOrders)));
+        items.add(new MenuItem("Посмотреть все выполненные заказы за период", ()->displayeExecuteOrders(bookStore.getOrders())));
         items.add(new MenuItem("Посмотреть не проданный книги", ()->displayOldBooksMenu(bookStore.getBookInventory())));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
 
@@ -119,8 +129,8 @@ public class Builder {
 
     private Menu buildExportOrdersMenu(Menu nextMenu){
         List<MenuItem> items=new ArrayList<>();
-        items.add(new MenuItem("Экспорт заказов в консоль", ()->displayOrderMenu(bookStore.getOrders)));
-        items.add(new MenuItem("Экспорт заказов в файл", ()->exporter.ordersExport(bookStore.getOrders)));
+        items.add(new MenuItem("Экспорт заказов в консоль", ()->displayOrderMenu(bookStore.getOrders())));
+        items.add(new MenuItem("Экспорт заказов в файл", ()->exporter.ordersExport(bookStore.getOrders())));
         items.add(new MenuItem("Назад", ()->navigator.navigate(nextMenu)));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
 
@@ -139,7 +149,7 @@ public class Builder {
 
     private Menu buildAddBookMenu(){
         List<MenuItem> items=new ArrayList<>();
-        items.add(new MenuItem("Данные книги", ()->bookStoreController.addBook(new Book(action.readBookTitle(), BookStatus.IN_STOCK,
+        items.add(new MenuItem("Данные книги", ()->bookStoreController.addBook(new Book(action.readBookTitle(), action.readBookAuthor(), BookStatus.IN_STOCK,
                 action.readDate(), action.readPrice(), action.readDescription()))));
         items.add(new MenuItem("Назад", ()->{}));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
