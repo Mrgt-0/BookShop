@@ -8,79 +8,66 @@ import Status.BookStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.sql.*;
 import java.time.LocalDate;
 
 public class BookRepository extends GenericDaoImpl<Book, Integer> {
     @Inject
     private Connection connection;
+    @PersistenceContext
+    EntityManager entityManager;
+
     public BookRepository(Connection connection){
         super(connection);
     }
 
     private static final Logger logger = LoggerFactory.getLogger(BookRepository.class);
 
+    @Transactional
     public void save(Book book){
-        String sql = getCreateSql();
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            populateCreateStatement(statement, book);
-            statement.executeUpdate();
-
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    setId(book, generatedKeys.getInt(1));
-                    logger.info("Книга с ID {} сохранена.", book.getBookId());
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Ошибка при сохранении книги: {}, SQL exception: {}", book, e.getMessage());
-            throw new RuntimeException("SQL exception while saving book: ", e);
+        try {
+            entityManager.persist(book);
+            logger.info("Книга с ID {} сохранена.", book.getBookId());
+        } catch (Exception e) {
+            logger.error("Ошибка при сохранении книги: {}, причина: {}", book, e.getMessage());
+            throw new RuntimeException("Ошибка при сохранении книги", e);
         }
     }
 
+    @Transactional
     public void updateBookStatus(int bookId, BookStatus status) {
-        String sql = "UPDATE Book SET status = ? WHERE bookId = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, status.name());
-            statement.setInt(2, bookId);
-            int rowsUpdated = statement.executeUpdate();
-
-            if (rowsUpdated > 0) {
+        try {
+            Book book = entityManager.find(Book.class, bookId);
+            if (book != null) {
+                book.setStatus(status);
+                entityManager.merge(book);
                 logger.info("Статус книги с ID {} обновлён на {}.", bookId, status.name());
             } else {
                 logger.warn("Книга с ID {} не найдена для обновления статуса.", bookId);
             }
-        } catch (SQLException e) {
-            logger.error("Ошибка при обновлении статуса книги с ID {}: {}, SQL exception: {}", bookId, status, e.getMessage());
-            throw new RuntimeException("SQL exception: ", e);
+        } catch (Exception e) {
+            logger.error("Ошибка при обновлении статуса книги с ID {}: {}", bookId, e.getMessage());
+            throw new RuntimeException("Ошибка при обновлении статуса книги", e);
         }
     }
 
     public Book getByTitle(String title) {
         Book book = null;
-        String query = "SELECT * FROM Book WHERE title = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, title);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                int id = rs.getInt("id");
-                String bookTitle = rs.getString("title");
-                String author = rs.getString("author");
-                BookStatus status = BookStatus.valueOf(rs.getString("status"));
-                LocalDate publish_date = rs.getDate("publish_date").toLocalDate();
-                double price = rs.getDouble("price");
-                String description = rs.getString("description");
-
-                book = new Book(bookTitle, author, status, publish_date, price, description);
-                logger.info("Книга с названием '{}' найдена.", title);
-            } else {
-                logger.warn("Книга с названием '{}' не найдена.", title);
-            }
-        } catch (SQLException e) {
+        try {
+            book = entityManager.createQuery("SELECT b FROM Book b WHERE b.title = :title", Book.class)
+                    .setParameter("title", title)
+                    .getSingleResult();
+            logger.info("Книга с названием '{}' найдена.", title);
+        } catch (NoResultException e) {
+            logger.warn("Книга с названием '{}' не найдена.", title);
+        } catch (Exception e) {
             logger.error("Ошибка запроса книги по названию '{}': {}", title, e.getMessage());
-            throw new RuntimeException("SQL exception: ", e);
+            throw new RuntimeException("Ошибка при запросе книги по названию", e);
         }
 
         return book;
@@ -91,21 +78,19 @@ public class BookRepository extends GenericDaoImpl<Book, Integer> {
         return "INSERT INTO Book(title, author, status, publish_date, price, description) VALUES (?, ?, ?, ?, ?)";
     }
 
-    @Override
+    @Transactional
     protected void delete(int bookId) {
-        String sql = "DELETE FROM Book WHERE bookId = ?";
-        try (PreparedStatement statement = DatabaseConnection.getConnection().prepareStatement(sql)) {
-            statement.setInt(1, bookId);
-            int rowsAffected = statement.executeUpdate();
-
-            if (rowsAffected > 0) {
+        try {
+            Book book = entityManager.find(Book.class, bookId);
+            if (book != null) {
+                entityManager.remove(book);
                 logger.info("Книга с ID {} успешно удалена.", bookId);
             } else {
                 logger.warn("Книга с ID {} не найдена для удаления.", bookId);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             logger.error("Ошибка при удалении книги с ID {}: {}", bookId, e.getMessage());
-            throw new RuntimeException("SQL exception: ", e);
+            throw new RuntimeException("Ошибка при удалении книги", e);
         }
     }
 
@@ -175,24 +160,16 @@ public class BookRepository extends GenericDaoImpl<Book, Integer> {
     }
 
     public Book getBookByTitle(String title) {
-        String sql = "SELECT * FROM Books WHERE title = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, title);
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                int bookId = resultSet.getInt("bookId");
-                String bookTitle = resultSet.getString("title");
-                String author = resultSet.getString("author");
-                BookStatus status = BookStatus.valueOf(resultSet.getString("status"));
-                LocalDate publish_date = resultSet.getDate("publish_date").toLocalDate();
-                Double price = resultSet.getDouble("price");
-                String description = resultSet.getString("description");
-                return new Book(bookTitle, author, status, publish_date, price, description);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error while fetching book by title: " + title, e);
+        try {
+            return entityManager.createQuery("SELECT b FROM Book b WHERE b.title = :title", Book.class)
+                    .setParameter("title", title)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            logger.warn("Книга с названием '{}' не найдена.", title);
+            return null;
+        } catch (Exception e) {
+            logger.error("Ошибка при получении книги с названием '{}': {}", title, e.getMessage());
+            throw new RuntimeException("Ошибка при получении книги по названию", e);
         }
-        return null;
     }
 }

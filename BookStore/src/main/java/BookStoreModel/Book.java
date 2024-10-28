@@ -2,14 +2,22 @@ package BookStoreModel;
 
 import Status.*;
 
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "Book")
 public class Book implements Serializable{
     private int bookId;
     private static int idIncrement=0;
     private String title;
     private String author;
+
+   @Enumerated(EnumType.STRING)
     private BookStatus status;
     private LocalDate publishDate;
     private double price;

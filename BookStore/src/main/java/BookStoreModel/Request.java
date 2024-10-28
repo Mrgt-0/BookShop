@@ -1,7 +1,11 @@
 package BookStoreModel;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serializable;
 
+@Entity
+@Table(name = "Request")
 public class Request implements Serializable {
     private int requestId;
     private static int idIncrement=0;

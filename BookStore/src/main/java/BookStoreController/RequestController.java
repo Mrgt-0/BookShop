@@ -6,11 +6,13 @@ import DI.Singleton;
 import Repository.OrderRepository;
 import Repository.RequestRepository;
 import Status.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.transaction.SystemException;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Singleton
 public class RequestController{
@@ -21,41 +23,41 @@ public class RequestController{
     @Inject
     private RequestRepository requestRepository;
 
-    private static final Logger logger = (Logger) LoggerFactory.getLogger(RequestController.class);
+    private static final Logger logger = LogManager.getLogger(BookStoreController.class);
 
     public RequestController(BookStore bookStore){
         bookStoreSerializable=new BookStoreSerializable(bookStore);
         this.bookStore=bookStore;
     }
 
-    public void requestBook(BookStore bookStore, String bookTitle) {
+    public void requestBook(BookStore bookStore, String bookTitle) throws SystemException {
         Book book = bookStore.getBookInventory().get(bookTitle);
         if (book != null) {
             if (book.getStatus() == BookStatus.OUT_OF_STOCK) {
                 Request request = new Request(book);
                 requestRepository.create(request);
-                logger.info("Запрос на книгу {} оставлен.");
+                logger.info("Запрос на книгу '{}' оставлен.", book.getTitle());
             } else {
                 OrderController orderController = new OrderController(bookStore);
                 orderController.createOrder(book, OrderStatus.NEW);
-                logger.info("Заказ на книгу {} создан.");
+                logger.info("Заказ на книгу '{}' создан.", book.getTitle());
             }
             bookStoreSerializable.saveState();
         } else
-            logger.log(Level.parse("Книга с названием {} не найдена в инвентаре."), bookTitle);
+            logger.warn("Книга с названием '{}' не найдена в инвентаре.", bookTitle);
     }
 
-    public void fulfillRequest(Request request) {
+    public void fulfillRequest(Request request) throws SystemException {
         if (request.getBook().getStatus() == BookStatus.IN_STOCK) {
             OrderController orderController = new OrderController(bookStore);
             orderController.createOrder(request.getBook(), OrderStatus.NEW);
             requestRepository.delete(request.getRequestId());
-            System.out.println("Запрос на книгу " + request.getBook().getTitle() + " выполнен.");
+            logger.info("Запрос на книгу '{}' выполнен.", request.getBook().getTitle());
         } else
-            System.out.println("Книга " + request.getBook().getTitle() + " недоступна для заказа.");
+            logger.warn("Книга '{}' недоступна для заказа.", request.getBook().getTitle());
     }
 
-    public void fulfillPendingRequests(BookStore bookStore) {
+    public void fulfillPendingRequests(Book book) throws SystemException {
         List<Request> requests = requestRepository.getAll();
         for (Request request : requests) {
             fulfillRequest(request);

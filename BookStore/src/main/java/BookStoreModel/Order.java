@@ -2,13 +2,20 @@ package BookStoreModel;
 
 import Status.*;
 
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "Order_book")
 public class Order implements Serializable {
     private int orderId;
     private static int idIncrement=0;
     private Book book;
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     private LocalDate executionDate;
     private Double orderPrice;

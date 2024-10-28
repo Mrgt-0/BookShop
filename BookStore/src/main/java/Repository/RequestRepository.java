@@ -12,10 +12,17 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
+
 public class RequestRepository extends GenericDaoImpl<Request, Integer> {
     @Inject
     private Connection connection;
     private final BookRepository bookRepository;
+
+    @PersistenceContext
+    EntityManager entityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(RequestRepository.class);
 
@@ -24,22 +31,15 @@ public class RequestRepository extends GenericDaoImpl<Request, Integer> {
         this.bookRepository=bookRepository;
     }
 
-    @Override
+    @Transactional
     public void delete(int requestId) {
-        String sql = getDeleteSql();
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            setIdParameter(statement, requestId);
-            int affectedRows = statement.executeUpdate();
-
-            if (affectedRows > 0) {
-                logger.info("Запрос с ID {} успешно удален.", requestId);
-            } else {
-                logger.warn("Не удалось удалить запрос: нет строк с requestId = {}", requestId);
-                throw new SQLException("No rows deleted, invalid requestId: " + requestId);
-            }
-        } catch (SQLException e) {
-            logger.error("Ошибка при удалении запроса с requestId {}: {}", requestId, e.getMessage());
-            throw new RuntimeException("Failed to delete request with requestId: " + requestId, e);
+        Request request = entityManager.find(Request.class, requestId);
+        if (request != null) {
+            entityManager.remove(request);
+            logger.info("Запрос с ID {} успешно удален.", requestId);
+        } else {
+            logger.warn("Не удалось удалить запрос: запрос с ID {} не найден.", requestId);
+            throw new IllegalArgumentException("Запрос не найден с ID: " + requestId);
         }
     }
 

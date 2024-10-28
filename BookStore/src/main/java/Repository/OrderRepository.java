@@ -9,9 +9,17 @@ import java.sql.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
+
 public class OrderRepository extends GenericDaoImpl<Order, Integer> {
     @Inject
     private Connection connection;
+
+    @PersistenceContext
+    EntityManager entityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
 
@@ -19,44 +27,35 @@ public class OrderRepository extends GenericDaoImpl<Order, Integer> {
         super(connection);
     }
 
+    @Transactional
     public void save(Order order) {
-        String sql = getCreateSql();
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            populateCreateStatement(statement, order);
-            int rowsAffected = statement.executeUpdate();
-
-            if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        setId(order, generatedKeys.getInt(1));
-                        logger.info("Заказ с ID {} успешно сохранен.", order.getOrderId());
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Ошибка при сохранении заказа: {}, SQL exception: {}", order, e.getMessage());
-            throw new RuntimeException("SQL exception while saving order: ", e);
+        try {
+            entityManager.persist(order);
+            logger.info("Заказ с ID {} успешно сохранен.", order.getOrderId());
+        } catch (Exception e) {
+            logger.error("Ошибка при сохранении заказа: {}, причина: {}", order, e.getMessage());
+            throw new RuntimeException("Ошибка при сохранении заказа", e);
         }
     }
 
+    @Transactional
     public void updateOrderStatus(int orderId, OrderStatus status){
-        String sql = "UPDATE order_date SET status = ? WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, status.name());
-            statement.setInt(2, orderId);
-            int rowsUpdated = statement.executeUpdate();
-
-            if (rowsUpdated > 0) {
+        try {
+            Order order = entityManager.find(Order.class, orderId);
+            if (order != null) {
+                order.setStatus(status);
+                entityManager.merge(order);  // Обновляем заказ
                 logger.info("Статус заказа с ID {} обновлен на {}.", orderId, status);
             } else {
                 logger.warn("Заказ с ID {} не найден для обновления статуса.", orderId);
             }
-        } catch (SQLException e) {
-            logger.error("Ошибка при обновлении статуса заказа с ID {}: {}, SQL exception: {}", orderId, status, e.getMessage());
-            throw new RuntimeException("SQL exception: ", e);
+        } catch (Exception e) {
+            logger.error("Ошибка при обновлении статуса заказа с ID {}: {}, причина: {}", orderId, status, e.getMessage());
+            throw new RuntimeException("Ошибка при обновлении статуса заказа", e);
         }
     }
 
+    @Transactional
     public void delete(int orderId){
         logger.info("Удаляем заказ с ID {} (статус будет изменен на CANCELLED).", orderId);
         updateOrderStatus(orderId, OrderStatus.CANCELLED);
