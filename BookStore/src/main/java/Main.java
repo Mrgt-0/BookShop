@@ -5,23 +5,18 @@ import ConsoleUI.Builder;
 import ConsoleUI.BuilderController;
 import ConsoleUI.Navigator;
 import DI.DependencyInjector;
-import Datebase.*;
 import Repository.BookRepository;
 import Repository.OrderRepository;
 import Repository.RequestRepository;
 import Status.*;
 
+import javax.transaction.SystemException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SystemException {
         BookStore bookStore=new BookStore();
-
-        try (Connection connection = DatabaseConnection.getConnection()) {
-            connection.setAutoCommit(false);
-
-            DatabaseInitializer databaseInitializer = new DatabaseInitializer();
 
             BookRepository bookRepository = DependencyInjector.getInstance(BookRepository.class);
             OrderRepository orderRepository = DependencyInjector.getInstance(OrderRepository.class);
@@ -33,7 +28,6 @@ public class Main {
             bookStoreController.placeOrder("Война и мир");
             bookStoreController.placeOrder("Преступление и наказание");
 
-            connection.commit();
 
             Navigator navigator = new Navigator();
             Builder builder = new Builder(bookStore);
@@ -42,8 +36,5 @@ public class Main {
 
             BookStoreSerializable bookStoreSerializable = new BookStoreSerializable(bookStore);
             bookStoreSerializable.saveState();
-        } catch (SQLException | ExceptionInInitializerError e) {
-            throw new RuntimeException("SQL exception: ", e);
-        }
     }
 }

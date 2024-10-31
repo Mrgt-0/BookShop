@@ -14,12 +14,20 @@ import java.util.Optional;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+
 @Singleton
 public class BookStoreController {
     private BookStoreSerializable bookStoreSerializable;
     private BookStore bookStore;
     @Inject
     private OrderController orderController;
+    @Inject
+    private RequestController requestController;
     @Inject
     private BookRepository bookRepository;
     @Inject
@@ -34,107 +42,67 @@ public class BookStoreController {
         bookStoreSerializable=new BookStoreSerializable(bookStore);
     }
 
-    public void addBook(Book book) {
+    public void addBook(Book book) throws SystemException {
         bookRepository.save(book);
-        bookStore.getBookInventory().put(book.getTitle(), book);
-
-        RequestController requestController = new RequestController(bookStore);
-        requestController.fulfillPendingRequests(bookStore);
-
-        if (Util.isMarkOrdersAsCompleted())
-            fulfillOrder(book.getTitle());
-
-        bookStoreSerializable.saveState();
     }
 
-    public void removeBook(Object bookIdentifier) {
-        if (bookIdentifier instanceof Integer) {
-            int bookId = (Integer) bookIdentifier;
-            logger.debug("Attempting to remove book with ID: {}", bookId);
+    public void removeBook(int bookId) throws SystemException {
+        bookRepository.delete(bookId);
+    }
 
-            Book book = bookRepository.getById(bookId);
-            if (book != null) {
-                bookRepository.delete(bookId);
-                bookStore.getBookInventory().remove(book.getTitle());
-                bookStoreSerializable.saveState();
-                logger.info("Книга с ID {} удалена.", bookId);
-            } else
-                logger.warn("Книга с ID {} не найдена.", bookId);
+    public void updateOrderStatus(int bookId, OrderStatus status) {
+        orderRepository.updateOrderStatus(bookId, status);
+    }
 
-        } else if (bookIdentifier instanceof String) {
-            String bookTitle = (String) bookIdentifier;
-            logger.debug("Попытка удалить книгу с названием: {}", bookTitle);
-
-            Book book = bookRepository.getByTitle(bookTitle);
-            if (book != null) {
-                bookRepository.delete(book.getBookId());
-                bookStore.getBookInventory().remove(book.getTitle());
-                bookStoreSerializable.saveState();
-                logger.info("Книга с названием '{}' удалена.", bookTitle);
-            } else
-                logger.warn("Книга с названием '{}' не найдена.", bookTitle);
-        } else
-            logger.error("Неверный тип идентификатора. Ожидалось: Integer или String.");
-        }
-
-    public void updateOrderStatus(String bookTitle, OrderStatus status) {
-        if(Util.isMarkOrdersAsCompleted()) {
+    public void cancelOrder(String bookTitle) {
+        try {
             bookStore.getOrders().stream()
                     .filter(order -> order.getBook().getTitle().equals(bookTitle))
                     .findFirst()
                     .ifPresent(order -> {
-                        orderController.updateStatus(order, status);
-                        orderRepository.updateOrderStatus(order.getOrderId(), status);
+                        try {
+                            orderController.cancelOrder(order);
+                            orderRepository.delete(order.getOrderId());
+                            logger.info("Заказ для книги '{}' отменен.", bookTitle);
+                        } catch (SystemException e) {
+                            logger.error("Ошибка при отмене заказа для книги '{}': {}", bookTitle, e.getMessage(), e);
+                        }
                     });
-            bookStoreSerializable.saveState();
-        }else
-            System.out.println("Обновление статуса заказа отключено.");
+        } catch (Exception e) {
+            logger.error("Ошибка при отмене заказа для книги '{}': {}", bookTitle, e.getMessage(), e);
+        }
     }
 
-    public void cancelOrder(String bookTitle) {
-        bookStore.getOrders().stream()
-                .filter(order -> order.getBook().getTitle().equals(bookTitle))
-                .findFirst()
-                .ifPresent(order -> {
-                    orderController.cancelOrder(order);
-                    orderRepository.delete(order.getOrderId());
-                });
-        bookStoreSerializable.saveState();
-    }
+    public void placeOrder(String title) throws SystemException {
+        Order order = orderRepository.placeOrder(title, bookStore);
 
-    public void placeOrder(String title) {
-        Book book = bookStore.getBookInventory().get(title);
-        if (book != null && book.getStatus() == BookStatus.IN_STOCK) {
-            Order order = new Order(book, OrderStatus.NEW);
+        if (order != null) {
             bookStore.getOrders().add(order);
-            orderRepository.save(order);
-            System.out.println("Заказ на книгу: " + book.getTitle());
-            bookStoreSerializable.saveState();
-        } else if (book != null) {
-            System.out.println("Книги: " + book.getTitle() + " нет на складе. Запрос на эту книгу оставлен");
-            RequestController bookRequest = new RequestController(bookStore);
-            bookRequest.requestBook(bookStore, title);
-            bookStoreSerializable.saveState();
-        } else
-            System.out.println("Книга с таким названием не найдена");
+            logger.info("Заказ добавлен в книжный магазин.");
+        } else {
+            logger.warn("Не удалось добавить заказ в книжный магазин.");
+        }
     }
 
-    public void fulfillOrder(String title){
-        Optional<Order> orderOptional = bookStore.getOrders().stream()
-                .filter(order -> order.getBook().getTitle().equals(title) && order.getStatus() == OrderStatus.NEW)
-                .findFirst();
+    public void fulfillOrder(String title) throws SystemException {
+        orderRepository.fulfillOrderByTitle(title);
+    }
 
-        if (orderOptional.isPresent()) {
-            Order order = orderOptional.get();
-            if (Util.isMarkOrdersAsCompleted()) {
-                orderController.updateStatus(order, OrderStatus.FULFILLED);
-                order.setExecutionDate(LocalDate.now());
-                bookStore.setTotalEarnings(order.getBook().getPrice());
-                bookStore.setTotalOrdersFulfilled(1);
-                orderRepository.update(order);
-            } else
-                System.out.println("Заказ на книгу " + order.getBook().getTitle() + " ожидает выполнения.");
-            bookStoreSerializable.saveState();
+    private void fulfillPendingRequests(Book book) throws SystemException {
+        RequestController requestController = new RequestController(bookStore);
+        requestController.fulfillPendingRequests(book);
+        if (Util.isMarkOrdersAsCompleted()) {
+            fulfillOrder(book.getTitle());
+        }
+    }
+
+    private void handleBookRemoval(Book book, Object identifier) {
+        if (book != null) {
+            bookRepository.delete(book.getBookId());
+            bookStore.getBookInventory().remove(book.getTitle());
+            logger.info("Книга с идентификатором '{}' удалена.", identifier);
+        } else {
+            logger.warn("Книга с идентификатором '{}' не найдена.", identifier);
         }
     }
 }

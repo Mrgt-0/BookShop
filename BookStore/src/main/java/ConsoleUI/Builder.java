@@ -16,6 +16,7 @@ import Repository.OrderRepository;
 import Repository.RequestRepository;
 import Status.BookStatus;
 
+import javax.transaction.SystemException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -49,7 +50,7 @@ public class Builder {
     public Builder(BookStore bookStore){
         this.bookStore=bookStore;
         this.navigator=new Navigator();
-        orderController=new OrderController(bookStore, orderRepository);
+        orderController=new OrderController(bookStore);
         bookStoreController=new BookStoreController(bookStore);
         exporter=new Exporter();
         importer=new Importer();
@@ -151,8 +152,14 @@ public class Builder {
 
     private Menu buildAddBookMenu(){
         List<MenuItem> items=new ArrayList<>();
-        items.add(new MenuItem("Данные книги", ()->bookStoreController.addBook(new Book(action.readBookTitle(), action.readBookAuthor(), BookStatus.IN_STOCK,
-                action.readDate(), action.readPrice(), action.readDescription()))));
+        items.add(new MenuItem("Данные книги", ()-> {
+            try {
+                bookStoreController.addBook(new Book(action.readBookTitle(), action.readBookAuthor(), BookStatus.IN_STOCK,
+                        action.readDate(), action.readPrice(), action.readDescription()));
+            } catch (SystemException e) {
+                throw new RuntimeException(e);
+            }
+        }));
         items.add(new MenuItem("Назад", ()->{}));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
 
@@ -161,7 +168,13 @@ public class Builder {
 
     private Menu buildRemoveBookMenu(){
         List<MenuItem> items=new ArrayList<>();
-        items.add(new MenuItem("Название", ()->bookStoreController.removeBook(action.readBookTitle())));
+        items.add(new MenuItem("Название", ()-> {
+            try {
+                bookStoreController.removeBook(bookRepository.getBookByTitle(action.readBookTitle()).getBookId());
+            } catch (SystemException e) {
+                throw new RuntimeException(e);
+            }
+        }));
         items.add(new MenuItem("Назад", ()->{}));
         items.add(new MenuItem("Выйти", ()->System.exit(0)));
 

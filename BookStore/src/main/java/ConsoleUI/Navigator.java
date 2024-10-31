@@ -1,5 +1,6 @@
 package ConsoleUI;
 
+import javax.transaction.SystemException;
 import java.util.ArrayList;
 
 public class Navigator {
@@ -34,6 +35,8 @@ public class Navigator {
                 }
             }catch (NumberFormatException e){
                 System.out.println("Некорректный формат ввода");
+            } catch (SystemException e) {
+                throw new RuntimeException(e);
             }
         }
     }

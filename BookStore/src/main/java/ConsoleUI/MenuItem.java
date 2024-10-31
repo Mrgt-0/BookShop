@@ -1,5 +1,7 @@
 package ConsoleUI;
 
+import javax.transaction.SystemException;
+
 public class MenuItem {
     private final String title;
     private final IAction action;
@@ -21,7 +23,7 @@ public class MenuItem {
         return title;
     }
 
-    public void doAction(){
+    public void doAction() throws SystemException {
         action.execute();
     }
 }

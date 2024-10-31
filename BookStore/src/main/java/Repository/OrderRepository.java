@@ -1,13 +1,21 @@
 package Repository;
 
+import BookStoreModel.Book;
+import BookStoreModel.BookStore;
 import BookStoreModel.Order;
 import DI.Inject;
 import Dao.GenericDaoImpl;
+import Status.BookStatus;
 import Status.OrderStatus;
 
 import java.sql.*;
+import java.time.LocalDate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.persistence.*;
+import javax.transaction.Transactional;
 
 public class OrderRepository extends GenericDaoImpl<Order, Integer> {
     @Inject
@@ -15,51 +23,128 @@ public class OrderRepository extends GenericDaoImpl<Order, Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
 
-    public OrderRepository(Connection connection){
+    public OrderRepository(Connection connection) {
         super(connection);
     }
 
+    @Transactional
     public void save(Order order) {
-        String sql = getCreateSql();
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            populateCreateStatement(statement, order);
-            int rowsAffected = statement.executeUpdate();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
 
-            if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        setId(order, generatedKeys.getInt(1));
-                        logger.info("Заказ с ID {} успешно сохранен.", order.getOrderId());
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Ошибка при сохранении заказа: {}, SQL exception: {}", order, e.getMessage());
-            throw new RuntimeException("SQL exception while saving order: ", e);
+            entityManager.persist(order);
+            logger.info("Заказ с ID {} успешно сохранен.", order.getOrderId());
+
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Ошибка при сохранении заказа: {}, причина: {}", order, e.getMessage());
+            throw new RuntimeException("Ошибка при сохранении заказа", e);
         }
     }
 
-    public void updateOrderStatus(int orderId, OrderStatus status){
-        String sql = "UPDATE order_date SET status = ? WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, status.name());
-            statement.setInt(2, orderId);
-            int rowsUpdated = statement.executeUpdate();
+    @Transactional
+    public void updateOrderStatus(int orderId, OrderStatus status) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
 
-            if (rowsUpdated > 0) {
-                logger.info("Статус заказа с ID {} обновлен на {}.", orderId, status);
+            Order order = entityManager.find(Order.class, orderId);
+            if (order != null) {
+                order.setStatus(status);
+                entityManager.merge(order);
+                logger.info("Статус заказа с ID {} обновлён на {}.", orderId, status);
             } else {
                 logger.warn("Заказ с ID {} не найден для обновления статуса.", orderId);
             }
-        } catch (SQLException e) {
-            logger.error("Ошибка при обновлении статуса заказа с ID {}: {}, SQL exception: {}", orderId, status, e.getMessage());
-            throw new RuntimeException("SQL exception: ", e);
+
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Ошибка при обновлении статуса заказа с ID {}: {}, причина: {}", orderId, status, e.getMessage());
+            throw new RuntimeException("Ошибка при обновлении статуса заказа", e);
         }
     }
 
-    public void delete(int orderId){
-        logger.info("Удаляем заказ с ID {} (статус будет изменен на CANCELLED).", orderId);
-        updateOrderStatus(orderId, OrderStatus.CANCELLED);
+    @Transactional
+    public Order placeOrder(String title, BookStore bookStore) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        Order order = null;
+        try {
+            transaction.begin();
+
+            Book book = bookStore.getBookInventory().get(title);
+            if (book != null && book.getStatus() == BookStatus.IN_STOCK) {
+                order = new Order(book, OrderStatus.NEW);
+                entityManager.persist(order);
+                logger.info("Заказ на книгу '{}' успешно размещен.", title);
+            } else {
+                logger.warn("Книга '{}' отсутствует на складе.", title);
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Ошибка при размещении заказа на книгу '{}': {}", title, e.getMessage(), e);
+            throw new RuntimeException("Ошибка при размещении заказа", e);
+        }
+        return order;
+    }
+
+    @Transactional
+    public void delete(int orderId) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+
+            Order order = entityManager.find(Order.class, orderId);
+            if (order != null) {
+                entityManager.remove(order);
+                logger.info("Заказ с ID {} успешно удалён.", orderId);
+            } else {
+                logger.warn("Заказ с ID {} не найден для удаления.", orderId);
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Ошибка при удалении заказа с ID {}: {}", orderId, e.getMessage());
+            throw new RuntimeException("Ошибка при удалении заказа", e);
+        }
+    }
+
+    @Transactional
+    public void fulfillOrderByTitle(String title) {
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+
+            Order order = entityManager.createQuery(
+                            "SELECT o FROM Order o WHERE o.book.title = :title AND o.status = :status", Order.class)
+                    .setParameter("title", title)
+                    .setParameter("status", OrderStatus.NEW)
+                    .getSingleResult();
+
+            if (order != null) {
+                order.setStatus(OrderStatus.FULFILLED);
+                order.setExecutionDate(LocalDate.now());
+                entityManager.merge(order);
+
+                logger.info("Заказ для книги '{}' выполнен.", title);
+            } else {
+                logger.warn("Заказ для книги '{}' не найден.", title);
+            }
+
+            transaction.commit();
+        } catch (NoResultException e) {
+            logger.warn("Заказ для книги '{}' не найден.", title);
+            transaction.rollback();
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Ошибка при выполнении заказа для книги '{}': {}", title, e.getMessage(), e);
+            throw new RuntimeException("Ошибка при выполнении заказа", e);
+        }
     }
 
     @Override

@@ -2,13 +2,20 @@ package BookStoreModel;
 
 import Status.*;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "Order_book")
 public class Order implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private int orderId;
     private static int idIncrement=0;
     private Book book;
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     private LocalDate executionDate;
     private Double orderPrice;

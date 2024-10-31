@@ -1,5 +1,7 @@
 package ConsoleUI;
 
+import javax.transaction.SystemException;
+
 public interface IAction {
-    void execute();
+    void execute() throws SystemException;
 }

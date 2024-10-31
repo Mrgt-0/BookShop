@@ -1,16 +1,26 @@
 package Dao;
 
+import BookStoreController.BookStoreController;
+import DI.Inject;
+import com.mysql.cj.conf.PropertyKey.logger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
+
     protected Connection connection;
 
+    @Inject
+    private EntityManager entityManager;
+
+    private static final Logger logger = LogManager.getLogger(BookStoreController.class);
     public GenericDaoImpl(Connection connection){
         this.connection=connection;
     }
-
+  
     @Override
     public T create(T entity){
         String sql = getCreateSql();
@@ -30,7 +40,7 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
             throw new RuntimeException("Failed to create entity", e);
         }
     }
-
+  
     @Override
     public T getById(ID id){
         String sql = getSelectByIdSql();
@@ -46,7 +56,7 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
         }
         return null;
     }
-
+  
     @Override
     public List<T> getAll() {
         String sql = getSelectAllSql();
@@ -57,6 +67,7 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
                 entities.add(mapResultSetToEntity(resultSet));
             }
         } catch (SQLException e) {
+
             throw new RuntimeException("Failed to get all entities", e);
         }
         return entities;
@@ -72,7 +83,7 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
             throw new RuntimeException("Failed to update entity", e);
         }
     }
-
+  
     @Override
     public void delete(ID id) {
         String sql = getDeleteSql();
@@ -83,21 +94,24 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
             throw new RuntimeException("Failed to delete entity", e);
         }
     }
-
     protected abstract String getCreateSql();
 
     protected abstract void delete(int bookId);
 
     protected abstract void populateCreateStatement(PreparedStatement statement, T entity) throws SQLException;
+
     protected abstract void setId(T entity, ID id);
 
     protected abstract String getSelectByIdSql();
+
     protected abstract void setIdParameter(PreparedStatement statement, ID id) throws SQLException;
+
     protected abstract T mapResultSetToEntity(ResultSet resultSet) throws SQLException;
 
     protected abstract String getSelectAllSql();
 
     protected abstract String getUpdateSql();
+
     protected abstract void populateUpdateStatement(PreparedStatement statement, T entity) throws SQLException;
 
     protected abstract String getDeleteSql();

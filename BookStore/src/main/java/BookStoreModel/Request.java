@@ -1,8 +1,14 @@
 package BookStoreModel;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
+@Entity
+@Table(name = "Request")
 public class Request implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private int requestId;
     private static int idIncrement=0;
     private Book book;
