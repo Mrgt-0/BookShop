@@ -4,22 +4,23 @@ import DI.Inject;
 import DI.Singleton;
 import Repository.OrderRepository;
 import Status.*;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
-import javax.persistence.EntityTransaction;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 
 @Singleton
+@Controller
 public class OrderController {
-
+    @Autowired
     private BookStoreSerializable bookStoreSerializable;
+    @Autowired
     private BookStore bookStore;
-
-    @Inject
+    @Autowired
     private OrderRepository orderRepository;
 
     private static final Logger logger = LogManager.getLogger(BookStoreController.class);

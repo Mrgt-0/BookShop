@@ -13,26 +13,29 @@ import java.time.LocalDate;
 import java.util.Optional;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 
 @Singleton
+@Controller
 public class BookStoreController {
+    @Autowired
     private BookStoreSerializable bookStoreSerializable;
+    @Autowired
     private BookStore bookStore;
-    @Inject
+    @Autowired
     private OrderController orderController;
-    @Inject
+    @Autowired
     private RequestController requestController;
-    @Inject
+    @Autowired
     private BookRepository bookRepository;
-    @Inject
+    @Autowired
     private OrderRepository orderRepository;
-    @Inject
+    @Autowired
     private RequestRepository requestRepository;
 
     private static final Logger logger = LogManager.getLogger(BookStoreController.class);
@@ -40,6 +43,7 @@ public class BookStoreController {
     public BookStoreController(BookStore bookStore){
         this.bookStore=bookStore;
         bookStoreSerializable=new BookStoreSerializable(bookStore);
+
     }
 
     public void addBook(Book book) throws SystemException {

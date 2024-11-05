@@ -2,30 +2,25 @@ package Repository;
 
 import BookStoreModel.Book;
 import BookStoreModel.Request;
-import DI.Inject;
 import Dao.GenericDaoImpl;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
+@Repository
 public class RequestRepository extends GenericDaoImpl<Request, Integer> {
-    @Inject
-    private Connection connection;
-    private final BookRepository bookRepository;
+    private BookRepository bookRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(RequestRepository.class);
 
-    public RequestRepository(Connection connection, BookRepository bookRepository){
-        super(connection);
-        this.bookRepository=bookRepository;
+    public RequestRepository(){
+        super(Request.class);
     }
 
     @Transactional
@@ -38,6 +33,11 @@ public class RequestRepository extends GenericDaoImpl<Request, Integer> {
             logger.warn("Не удалось удалить запрос: запрос с ID {} не найден.", requestId);
             throw new IllegalArgumentException("Запрос не найден с ID: " + requestId);
         }
+    }
+
+    @Override
+    protected Class<Request> getEntityClass() {
+        return Request.class;
     }
 
     @Override

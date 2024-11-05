@@ -4,23 +4,23 @@ import BookStoreModel.BookStoreSerializable;
 import ConsoleUI.Builder;
 import ConsoleUI.BuilderController;
 import ConsoleUI.Navigator;
-import DI.DependencyInjector;
+import DI.AppConfig;
 import Repository.BookRepository;
 import Repository.OrderRepository;
 import Repository.RequestRepository;
-import Status.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import javax.transaction.SystemException;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws SystemException {
+        ApplicationContext context=new AnnotationConfigApplicationContext(AppConfig.class);
         BookStore bookStore=new BookStore();
 
-            BookRepository bookRepository = DependencyInjector.getInstance(BookRepository.class);
-            OrderRepository orderRepository = DependencyInjector.getInstance(OrderRepository.class);
-            RequestRepository requestRepository = DependencyInjector.getInstance(RequestRepository.class);
+            BookRepository bookRepository = context.getBean(BookRepository.class);
+            OrderRepository orderRepository = context.getBean(OrderRepository.class);
+            RequestRepository requestRepository = context.getBean(RequestRepository.class);
 
             OrderController orderController = new OrderController(bookStore);
             BookStoreController bookStoreController = new BookStoreController(bookStore);
