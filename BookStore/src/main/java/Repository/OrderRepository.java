@@ -3,28 +3,23 @@ package Repository;
 import BookStoreModel.Book;
 import BookStoreModel.BookStore;
 import BookStoreModel.Order;
-import DI.Inject;
 import Dao.GenericDaoImpl;
 import Status.BookStatus;
 import Status.OrderStatus;
-
 import java.sql.*;
 import java.time.LocalDate;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.stereotype.Repository;
 import javax.persistence.*;
 import javax.transaction.Transactional;
 
+@Repository
 public class OrderRepository extends GenericDaoImpl<Order, Integer> {
-    @Inject
-    private Connection connection;
-
     private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
 
-    public OrderRepository(Connection connection) {
-        super(connection);
+    public OrderRepository(){
+        super(Order.class);
     }
 
     @Transactional

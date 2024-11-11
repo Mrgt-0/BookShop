@@ -8,7 +8,6 @@ import java.io.Serializable;
 public class Request implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private int requestId;
     private static int idIncrement=0;
     private Book book;

@@ -1,29 +1,24 @@
 package Repository;
 
 import BookStoreModel.Book;
-import DI.Inject;
 import Dao.GenericDaoImpl;
 import Status.BookStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.sql.*;
-import java.time.LocalDate;
 
+@Repository
 public class BookRepository extends GenericDaoImpl<Book, Integer> {
-    @Inject
-    private Connection connection;
-
-    public BookRepository(Connection connection){
-        super(connection);
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(BookRepository.class);
+
+    public BookRepository(){
+        super(Book.class);
+    }
 
     @Transactional
     public void save(Book book){
@@ -88,7 +83,7 @@ public class BookRepository extends GenericDaoImpl<Book, Integer> {
     }
 
     @Transactional
-    protected void delete(int bookId) {
+    public void delete(int bookId) {
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();

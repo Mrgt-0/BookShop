@@ -1,15 +1,13 @@
 package ConsoleUI;
 
-import BookStoreController.BookStoreController;
-import BookStoreController.Exporter;
-import BookStoreController.Importer;
-import BookStoreController.OrderController;
+import BookStoreService.BookStoreService;
+import BookStoreService.Exporter;
+import BookStoreService.Importer;
+import BookStoreService.OrderService;
 import BookStoreModel.Book;
 import BookStoreModel.BookStore;
 import BookStoreModel.Order;
 import BookStoreModel.Request;
-import DI.Inject;
-import DI.Singleton;
 import Property.Util;
 import Repository.BookRepository;
 import Repository.OrderRepository;
@@ -23,35 +21,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-@Singleton
 public class Builder {
-    @Inject
     private BookStore bookStore;
-    @Inject
-    private BookStoreController bookStoreController;
-    @Inject
-    private OrderController orderController;
-
-    @Inject
+    private BookStoreService bookStoreService;
+    private OrderService orderService;
     private BookRepository bookRepository;
-    @Inject
     private OrderRepository orderRepository;
-    @Inject
     private RequestRepository requestRepository;
-    @Inject
     private Navigator navigator;
-    @Inject
     private ActionHelper action;
-    @Inject
     private Importer importer;
-    @Inject
     private Exporter exporter;
 
     public Builder(BookStore bookStore){
         this.bookStore=bookStore;
         this.navigator=new Navigator();
-        orderController=new OrderController(bookStore);
-        bookStoreController=new BookStoreController(bookStore);
+        orderService=new OrderService(bookStore);
+        bookStoreService=new BookStoreService(bookStore);
         exporter=new Exporter();
         importer=new Importer();
         action=new ActionHelper();
@@ -67,7 +53,7 @@ public class Builder {
         items.add(new MenuItem("Оформить заказ", ()-> {
             String title=action.readBookTitle();
             if(bookStore.getBookInventory().get(title)!=null){
-                bookStoreController.placeOrder(title);
+                bookStoreService.placeOrder(title);
             }
             else
                 System.out.println("Книга с таким названием не найдена");
@@ -154,7 +140,7 @@ public class Builder {
         List<MenuItem> items=new ArrayList<>();
         items.add(new MenuItem("Данные книги", ()-> {
             try {
-                bookStoreController.addBook(new Book(action.readBookTitle(), action.readBookAuthor(), BookStatus.IN_STOCK,
+                bookStoreService.addBook(new Book(action.readBookTitle(), action.readBookAuthor(), BookStatus.IN_STOCK,
                         action.readDate(), action.readPrice(), action.readDescription()));
             } catch (SystemException e) {
                 throw new RuntimeException(e);
@@ -170,7 +156,7 @@ public class Builder {
         List<MenuItem> items=new ArrayList<>();
         items.add(new MenuItem("Название", ()-> {
             try {
-                bookStoreController.removeBook(bookRepository.getBookByTitle(action.readBookTitle()).getBookId());
+                bookStoreService.removeBook(bookRepository.getBookByTitle(action.readBookTitle()).getBookId());
             } catch (SystemException e) {
                 throw new RuntimeException(e);
             }

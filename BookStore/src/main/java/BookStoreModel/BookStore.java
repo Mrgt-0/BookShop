@@ -1,14 +1,11 @@
 package BookStoreModel;
 
-import DI.Singleton;
 import Status.*;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Singleton
 public class BookStore implements Serializable{
     Map<String, Book> bookInventory;
     private List<Order> orders;

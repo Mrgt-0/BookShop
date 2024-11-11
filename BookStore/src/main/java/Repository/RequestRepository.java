@@ -2,30 +2,22 @@ package Repository;
 
 import BookStoreModel.Book;
 import BookStoreModel.Request;
-import DI.Inject;
 import Dao.GenericDaoImpl;
-
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import org.springframework.stereotype.Repository;
 import javax.transaction.Transactional;
 
+@Repository
 public class RequestRepository extends GenericDaoImpl<Request, Integer> {
-    @Inject
-    private Connection connection;
-    private final BookRepository bookRepository;
-
+    private BookRepository bookRepository;
     private static final Logger logger = LoggerFactory.getLogger(RequestRepository.class);
 
-    public RequestRepository(Connection connection, BookRepository bookRepository){
-        super(connection);
-        this.bookRepository=bookRepository;
+    public RequestRepository(){
+        super(Request.class);
     }
 
     @Transactional

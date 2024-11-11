@@ -1,7 +1,6 @@
 package BookStoreModel;
 
 import Status.*;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -11,7 +10,6 @@ import java.time.LocalDate;
 public class Order implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private int orderId;
     private static int idIncrement=0;
     private Book book;
