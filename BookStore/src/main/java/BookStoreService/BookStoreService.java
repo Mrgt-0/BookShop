@@ -12,7 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.transaction.SystemException;
 
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
+@RequestMapping("/books")
 public class BookStoreService {
     @Autowired
     private BookStoreSerializable bookStoreSerializable;
@@ -33,22 +40,26 @@ public class BookStoreService {
     public BookStoreService(BookStore bookStore){
         this.bookStore=bookStore;
         bookStoreSerializable=new BookStoreSerializable(bookStore);
-
     }
 
-    public void addBook(Book book) throws SystemException {
+    @PostMapping("/add")
+    public String addBook(@ModelAttribute("book") Book book) throws SystemException {
         bookRepository.save(book);
+        return "redirect:/books";
     }
 
-    public void removeBook(int bookId) throws SystemException {
+    @GetMapping("/remove/{id}")
+    public String removeBook(@PathVariable int bookId) throws SystemException {
         bookRepository.delete(bookId);
+        return "redirect:/books";
     }
 
     public void updateOrderStatus(int bookId, OrderStatus status) {
         orderRepository.updateOrderStatus(bookId, status);
     }
 
-    public void cancelOrder(String bookTitle) {
+    @GetMapping("/cancel/{bookTitle}")
+    public String cancelOrder(@PathVariable String bookTitle) {
         try {
             bookStore.getOrders().stream()
                     .filter(order -> order.getBook().getTitle().equals(bookTitle))
@@ -62,19 +73,24 @@ public class BookStoreService {
                             logger.error("Ошибка при отмене заказа для книги '{}': {}", bookTitle, e.getMessage(), e);
                         }
                     });
+            return "redirect:/success";
         } catch (Exception e) {
             logger.error("Ошибка при отмене заказа для книги '{}': {}", bookTitle, e.getMessage(), e);
+            return "redirect:/error";
         }
     }
 
-    public void placeOrder(String title) throws SystemException {
+    @PostMapping("/placeOrder")
+    public String placeOrder(@RequestParam String title) throws SystemException {
         Order order = orderRepository.placeOrder(title, bookStore);
 
         if (order != null) {
             bookStore.getOrders().add(order);
             logger.info("Заказ добавлен в книжный магазин.");
+            return "redirect:/success";
         } else {
             logger.warn("Не удалось добавить заказ в книжный магазин.");
+            return "redirect:/error";
         }
     }
 
@@ -98,5 +114,11 @@ public class BookStoreService {
         } else {
             logger.warn("Книга с идентификатором '{}' не найдена.", identifier);
         }
+    }
+    @GetMapping
+    public String listBooks(Model model) {
+        ArrayList<Book> books = (ArrayList<Book>) bookStore.getBookInventory();
+        model.addAttribute("books", books);
+        return "books/list";
     }
 }

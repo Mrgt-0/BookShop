@@ -8,10 +8,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import javax.transaction.SystemException;
 import java.util.List;
 
 @Service
+@RequestMapping
 public class RequestService {
     @Autowired
     private BookStoreSerializable bookStoreSerializable;
@@ -28,7 +33,8 @@ public class RequestService {
         this.bookStore=bookStore;
     }
 
-    public void requestBook(BookStore bookStore, String bookTitle) throws SystemException {
+    @PostMapping
+    public void requestBook(@ModelAttribute("bookStore") BookStore bookStore, String bookTitle) throws SystemException {
         Book book = bookStore.getBookInventory().get(bookTitle);
         if (book != null) {
             if (book.getStatus() == BookStatus.OUT_OF_STOCK) {

@@ -1,9 +1,14 @@
 package BookStoreModel;
 
+import BookStoreService.BookStoreService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 
 public class BookStoreSerializable {
     private static final String BOOKSTORE_STATE_FILE = "bookstore_state.ser";
+    private static final Logger logger = LogManager.getLogger(BookStoreService.class);
     private final BookStore bookStore;
     public BookStoreSerializable(BookStore bookStore){
         bookStore=loadState();
@@ -12,18 +17,18 @@ public class BookStoreSerializable {
     public void saveState(){
         try(ObjectOutputStream out=new ObjectOutputStream(new FileOutputStream(BOOKSTORE_STATE_FILE))){
             out.writeObject(bookStore);
-            System.out.println("Состояние программы сохранено.");
+            logger.info("Состояние программы сохранено.");
         }catch (IOException e){
-            System.out.println("Error: "+e.getMessage());
+            logger.error("Error: "+e.getMessage());
         }
     }
     private BookStore loadState(){
         try(ObjectInputStream in=new ObjectInputStream(new FileInputStream(BOOKSTORE_STATE_FILE))){
             BookStore bookStore=(BookStore)in.readObject();
-            System.out.println("Состояние программы восстановлено.");
+            logger.info("Состояние программы восстановлено.");
             return bookStore;
         }catch (IOException  | ClassNotFoundException e) {
-            System.out.println("Error: " + e.getMessage());
+            logger.error("Error: " + e.getMessage());
             return null;
         }
     }
