@@ -1,4 +1,4 @@
-package BookStoreModel;
+package com.books.BookStore.example.Model;
 
 import javax.persistence.*;
 import java.io.Serializable;

@@ -1,4 +1,4 @@
-package Config;
+package com.books.BookStore.example.Config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

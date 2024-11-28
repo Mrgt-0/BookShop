@@ -1,16 +1,19 @@
-package Dao;
+package com.books.BookStore.example.Dao;
 
-import BookStoreService.BookStoreService;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Service.BookStoreService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-
 import java.lang.reflect.ParameterizedType;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
     @PersistenceContext
@@ -35,8 +38,8 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
     }
 
     @Override
-    public T getById(ID id){
-        return entityManager.find(getEntityClass(), id);
+    public Optional<T> getById(ID id){
+        return Optional.ofNullable(entityManager.find(getEntityClass(), id));
     }
 
     @Override
@@ -51,7 +54,7 @@ public abstract class GenericDaoImpl<T, ID> implements GenericDao<T, ID> {
     }
 
     @Override
-    public void delete(T entity) {
+    public void delete(Optional<Book> entity) {
         entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
     }
 

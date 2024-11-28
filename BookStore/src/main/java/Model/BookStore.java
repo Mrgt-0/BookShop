@@ -1,6 +1,8 @@
-package BookStoreModel;
+package com.books.BookStore.example.Model;
 
-import Status.*;
+import com.books.BookStore.example.Status.BookStatus;
+import com.books.BookStore.example.Status.OrderStatus;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;

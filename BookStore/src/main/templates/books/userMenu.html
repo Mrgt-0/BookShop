@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Управление книгами</title>
+</head>
+<body>
+<h1>Управление книгами</h1>
+
+<h2>Добавить книгу</h2>
+<form th:action="@{/books/add}" method="post">
+    <label for="title">Название:</label>
+    <input type="text" id="title" name="title" required>
+    <label for="author">Автор:</label>
+    <input type="text" id="author" name="author" required>
+    <label for="description">Описание:</label>
+    <textarea id="description" name="description" required></textarea>
+    <button type="submit">Добавить</button>
+</form>
+
+<h2>Список книг</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Название</th>
+        <th>Автор</th>
+        <th>Описание</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${books}">
+        <td th:text="${book.title}"></td>
+        <td th:text="${book.author}"></td>
+        <td th:text="${book.description}"></td>
+        <td>
+            <a th:href="@{/books/remove/{id}(id=${book.bookId})}">Удалить</a>
+            <form th:action="@{/books/placeOrder}" method="post" style="display:inline;">
+                <input type="hidden" name="title" th:value="${book.title}">
+                <button type="submit">Оформить заказ</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Экспорт/Импорт книг</h2>
+<form th:action="@{/export}" method="get">
+    <button type="submit">Экспортировать книги</button>
+</form>
+<form th:action="@{/importBooks}" method="post">
+    <label for="fileName">Введите название файла для импорта:</label>
+    <input type="text" id="fileName" name="fileName" required>
+    <button type="submit">Импортировать</button>
+</form>
+<div th:if="${message}">
+    <p th:text="${message}"></p>
+</div>
+</body>
+</html>

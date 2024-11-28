@@ -1,12 +1,19 @@
-package BookStoreService;
+package com.books.BookStore.example.Service;
 
-import BookStoreModel.Book;
-import BookStoreModel.BookStore;
-import BookStoreModel.Order;
-import BookStoreModel.Request;
-import Status.BookStatus;
-import Status.OrderStatus;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Model.BookStore;
+import com.books.BookStore.example.Model.Order;
+import com.books.BookStore.example.Model.Request;
+import com.books.BookStore.example.Status.BookStatus;
+import com.books.BookStore.example.Status.OrderStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,13 +24,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RequestMapping
 public class Importer {
     @Autowired
     private BookStore bookStore;
+    private static final Logger logger = LogManager.getLogger(BookStoreService.class);
 
-    public Map<String, Book> booksImporter() {
+    @GetMapping("/importBooks")
+    public String booksImporter(@RequestParam String fileName, Model model) {
         Map<String, Book> importedBooks = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(readFile()))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line = reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] bookData = line.split(",");
@@ -38,24 +48,22 @@ public class Importer {
                     book.setBookId(Integer.parseInt(bookData[0]));
                     importedBooks.put(book.getTitle(), book);
                 } else
-                    System.out.println("Некорректный формат данных в файле: " + line);
+                    logger.error("Некорректный формат данных в файле: " + line);
             }
-            System.out.println("Импорт книг завершен успешно.");
-            return importedBooks;
+            logger.error("Импорт книг завершен успешно.");
+            model.addAttribute("message", "Импорт завершен успешно. Импортировано книг: " + importedBooks.size());
+            return "redirect:/books";
         } catch (IOException e) {
-            System.out.println("Ошибка при импорте книг: " + e.getMessage());
-            return null;
+            logger.error("Ошибка при импорте книг: " + e.getMessage());
+            model.addAttribute("message", "Ошибка при импорте: " + e.getMessage());
+            return "importBooks";
         }
     }
 
-    private String readFile(){
-        System.out.print("Введите название файла для импорта: ");
-        return System.console().readLine();
-    }
-
-    public  List<Order> ordersImporter() {
+    @GetMapping("/importOrders")
+    public  String ordersImporter(@RequestParam String fileName, Model model) {
         List<Order> orders = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(readFile()))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line = reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] orderData = line.split(",");
@@ -75,20 +83,21 @@ public class Importer {
                         order.setOrderPrice((double) orderPrice);
                         orders.add(order);
                     } else
-                        System.out.println("Book not found in inventory: " + bookTitle);
+                        logger.error("Book not found in inventory: " + bookTitle);
                 } else
-                    System.out.println("Некорректный формат данных в файле: " + line);
+                    logger.error("Некорректный формат данных в файле: " + line);
             }
         } catch (IOException e) {
-            System.out.println("Ошибка при импорте книг: " + e.getMessage());
-            return null;
+            logger.error("Ошибка при импорте книг: " + e.getMessage());
+            return "importOrders";
         }
-        return orders;
+        return "redirect:/books";
     }
 
-    public List<Request> requestsImporter(){
+    @GetMapping("/importRequests")
+    public String requestsImporter(@RequestParam String fileName, Model model){
         List<Request> requests = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(readFile()))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line = reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] requestData = line.split(",");
@@ -103,14 +112,14 @@ public class Importer {
                         request.setRequestCount(requestCount);
                         requests.add(request);
                     } else
-                        System.out.println("Book not found in inventory: " + bookTitle);
+                        logger.error("Book not found in inventory: " + bookTitle);
                 }else
-                    System.out.println("Некорректный формат данных в файле: " + line);
+                    logger.error("Некорректный формат данных в файле: " + line);
             }
             }catch (IOException e) {
-            System.out.println("Ошибка при импорте книг: " + e.getMessage());
+            logger.error("Ошибка при импорте книг: " + e.getMessage());
             return null;
         }
-        return requests;
+        return "redirect:/books";
     }
 }

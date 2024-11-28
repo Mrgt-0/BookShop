@@ -1,8 +1,8 @@
-package Repository;
+package com.books.BookStore.example.Repository;
 
-import BookStoreModel.Book;
-import Dao.GenericDaoImpl;
-import Status.BookStatus;
+import com.books.BookStore.example.Dao.GenericDaoImpl;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Status.BookStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -10,7 +10,11 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
-import java.sql.*;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
 
 @Repository
 public class BookRepository extends GenericDaoImpl<Book, Integer> {
@@ -60,21 +64,20 @@ public class BookRepository extends GenericDaoImpl<Book, Integer> {
         }
     }
 
-    public Book getByTitle(String title) {
-        Book book = null;
+    public Optional<Book> getByTitle(String title) {
         try {
-            book = entityManager.createQuery("SELECT b FROM Book b WHERE b.title = :title", Book.class)
+            Book book = entityManager.createQuery("SELECT b FROM Book b WHERE b.title = :title", Book.class)
                     .setParameter("title", title)
                     .getSingleResult();
             logger.info("Книга с названием '{}' найдена.", title);
+            return Optional.of(book);
         } catch (NoResultException e) {
             logger.warn("Книга с названием '{}' не найдена.", title);
+            return Optional.empty();
         } catch (Exception e) {
             logger.error("Ошибка запроса книги по названию '{}': {}", title, e.getMessage());
             throw new RuntimeException("Ошибка при запросе книги по названию", e);
         }
-
-        return book;
     }
 
     @Override

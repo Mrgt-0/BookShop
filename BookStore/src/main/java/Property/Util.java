@@ -1,7 +1,7 @@
-package Property;
+package com.books.BookStore.example.Property;
 
-import Config.ConfigProperty;
-import Config.ConfigurationManager;
+import com.books.BookStore.example.Config.ConfigProperty;
+import com.books.BookStore.example.Config.ConfigurationManager;
 
 public class Util {
     @ConfigProperty(propertyName = "thresholdDateBook", type = int.class)

@@ -1,30 +1,18 @@
-package BookStoreModel;
+package com.books.BookStore.example.DTO;
 
-import Status.*;
-import javax.persistence.*;
-import java.io.Serializable;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Status.OrderStatus;
+
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "Order_book")
-public class Order implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class OrderDTO {
     private int orderId;
-    private static int idIncrement=0;
     private Book book;
-    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     private LocalDate executionDate;
     private Double orderPrice;
-
-    public Order(Book book, OrderStatus status){
-        this.book=book;
-        this.orderStatus=status;
-        this.orderId=++idIncrement;
-    }
-
-    public Order(OrderStatus orderStatus, LocalDate executionDate, Double orderPrice){
+    public OrderDTO(int orderId, OrderStatus orderStatus, LocalDate executionDate, Double orderPrice){
+        this.orderId=orderId;
         this.orderStatus=orderStatus;
         this.executionDate=executionDate;
         this.orderPrice=orderPrice;

@@ -1,13 +1,16 @@
-package DI;
+package com.books.BookStore.example.DI;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import javax.activation.DataSource;
+
+import javax.sql.DataSource;
 
 @Configuration
+@ComponentScan(basePackages = "com.books.BookStore.example")
 @PropertySource("classpath:application.properties")
 public class AppConfig {
     @Bean
@@ -21,6 +24,6 @@ public class AppConfig {
         dataSource.setUrl("jdbc:mysql://localhost:3306/BookStore");
         dataSource.setUser("root");
         dataSource.setPassword("Tessy_Sammy28*");
-        return (DataSource) dataSource;
+        return dataSource;
     }
 }

@@ -1,18 +1,22 @@
-package Repository;
+package com.books.BookStore.example.Repository;
 
-import BookStoreModel.Book;
-import BookStoreModel.BookStore;
-import BookStoreModel.Order;
-import Dao.GenericDaoImpl;
-import Status.BookStatus;
-import Status.OrderStatus;
-import java.sql.*;
-import java.time.LocalDate;
+import com.books.BookStore.example.Dao.GenericDaoImpl;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Model.BookStore;
+import com.books.BookStore.example.Model.Order;
+import com.books.BookStore.example.Status.BookStatus;
+import com.books.BookStore.example.Status.OrderStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+
 import javax.persistence.*;
 import javax.transaction.Transactional;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 
 @Repository
 public class OrderRepository extends GenericDaoImpl<Order, Integer> {

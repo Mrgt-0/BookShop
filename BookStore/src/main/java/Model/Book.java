@@ -1,6 +1,6 @@
-package BookStoreModel;
+package com.books.BookStore.example.Model;
 
-import Status.*;
+import com.books.BookStore.example.Status.BookStatus;
 
 import javax.persistence.*;
 import java.io.Serializable;

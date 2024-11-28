@@ -1,4 +1,4 @@
-package Config;
+package com.books.BookStore.example.Config;
 
 import java.io.IOException;
 import java.io.InputStream;

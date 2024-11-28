@@ -1,15 +1,24 @@
-package BookStoreService;
+package com.books.BookStore.example.Service;
 
-import BookStoreModel.Book;
-import BookStoreModel.Order;
-import BookStoreModel.Request;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Model.Order;
+import com.books.BookStore.example.Model.Request;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@RequestMapping
 public class Exporter {
-    public void booksExport(Map<String, Book> books){
+    private static final Logger logger = LogManager.getLogger(BookStoreService.class);
+
+    @GetMapping("/export")
+    public String booksExport(Map<String, Book> books){
         if (!readFile().isEmpty()) {
             try (FileWriter writer = new FileWriter(readFile())) {
                 writer.write("Id, Title, Status, Publish date, Price, Description\n");
@@ -21,12 +30,13 @@ public class Exporter {
                             book.getPrice() + "," +
                             book.getDescription() + "\n");
                 }
-                System.out.println("Экспорт книг в файл успешно завершен.");
+                return "redirect:/books";
             } catch (IOException e) {
-                System.out.println("Ошибка при экспорте книг: " + e.getMessage());
+                logger.error("Ошибка при экспорте книг: " + e.getMessage());
             }
         } else
-            System.out.println("Некорректный выбор");
+            logger.error("некорректный выбор");
+        return "error";
     }
     private String readFile(){
         System.out.print("Введите название файла для экспорта: ");

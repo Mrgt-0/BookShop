@@ -1,15 +1,17 @@
-package Repository;
+package com.books.BookStore.example.Repository;
 
-import BookStoreModel.Book;
-import BookStoreModel.Request;
-import Dao.GenericDaoImpl;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.books.BookStore.example.Dao.GenericDaoImpl;
+import com.books.BookStore.example.Model.Book;
+import com.books.BookStore.example.Model.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+
 import javax.transaction.Transactional;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
 
 @Repository
 public class RequestRepository extends GenericDaoImpl<Request, Integer> {
@@ -61,9 +63,17 @@ public class RequestRepository extends GenericDaoImpl<Request, Integer> {
     @Override
     protected Request mapResultSetToEntity(ResultSet resultSet) throws SQLException{
         int bookId = resultSet.getInt("bookId");
-        Book book = bookRepository.getById(bookId);
-        logger.info("Запрос загружен для книги с ID: {}", bookId);
-        return new Request(book);
+
+        Optional<Book> optionalBook = bookRepository.getById(bookId);
+
+        if (optionalBook.isPresent()) {
+            Book book = optionalBook.get();
+            logger.info("Запрос загружен для книги с ID: {}", bookId);
+            return new Request(book);
+        } else {
+            logger.warn("Книга с ID {} не найдена!", bookId);
+            throw new SQLException("Книга не найдена для ID: " + bookId);
+        }
     }
 
     @Override
