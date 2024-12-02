@@ -6,16 +6,31 @@
 <body>
 <h1>Управление книгами</h1>
 
-<h2>Добавить книгу</h2>
-<form th:action="@{/books/add}" method="post">
-    <label for="title">Название:</label>
-    <input type="text" id="title" name="title" required>
-    <label for="author">Автор:</label>
-    <input type="text" id="author" name="author" required>
-    <label for="description">Описание:</label>
-    <textarea id="description" name="description" required></textarea>
-    <button type="submit">Добавить</button>
-</form>
+<nav>
+    <h2>Меню</h2>
+    <ul>
+        <li><a th:href="@{/books}">Список книг</a></li>
+        <li th:if="${#authorization.hasRole('ADMIN')}">
+            <a th:href="@{/books/add}">Добавить книгу</a>
+        </li>
+        <li th:if="${#authorization.hasRole('USER')}">
+            <a th:href="@{/books/order}">Оформить заказ на книгу</a>
+        </li>
+    </ul>
+</nav>
+
+<div th:if="${#authorization.hasRole('ADMIN')}">
+    <h2>Добавить книгу</h2>
+    <form th:action="@{/books/add}" method="post">
+        <label for="title">Название:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="author">Автор:</label>
+        <input type="text" id="author" name="author" required>
+        <label for="description">Описание:</label>
+        <textarea id="description" name="description" required></textarea>
+        <button type="submit">Добавить</button>
+    </form>
+</div>
 
 <h2>Список книг</h2>
 <table>
@@ -33,8 +48,8 @@
         <td th:text="${book.author}"></td>
         <td th:text="${book.description}"></td>
         <td>
-            <a th:href="@{/books/remove/{id}(id=${book.bookId})}">Удалить</a>
-            <form th:action="@{/books/placeOrder}" method="post" style="display:inline;">
+            <a th:href="@{/books/remove/{id}(id=${book.bookId})}" th:if="${#authorization.hasRole('ADMIN')}">Удалить</a>
+            <form th:action="@{/books/placeOrder}" method="post" style="display:inline;" th:if="${#authorization.hasRole('USER')}">
                 <input type="hidden" name="title" th:value="${book.title}">
                 <button type="submit">Оформить заказ</button>
             </form>
@@ -44,10 +59,10 @@
 </table>
 
 <h2>Экспорт/Импорт книг</h2>
-<form th:action="@{/export}" method="get">
+<form th:action="@{/export}" method="get" th:if="${#authorization.hasRole('ADMIN')}">
     <button type="submit">Экспортировать книги</button>
 </form>
-<form th:action="@{/importBooks}" method="post">
+<form th:action="@{/importBooks}" method="post" th:if="${#authorization.hasRole('ADMIN')}">
     <label for="fileName">Введите название файла для импорта:</label>
     <input type="text" id="fileName" name="fileName" required>
     <button type="submit">Импортировать</button>
