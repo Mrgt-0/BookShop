@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/requests")
 public class RequestController {
     @Autowired
-    private RequestService requestService;
+    public RequestService requestService;
     @Autowired
     private RequestRepository requestRepository;
 

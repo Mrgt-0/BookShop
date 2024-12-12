@@ -2,12 +2,15 @@ package com.books.BookStore.example.Model;
 
 import com.books.BookStore.example.Status.BookStatus;
 import com.books.BookStore.example.Status.OrderStatus;
+import jakarta.persistence.Entity;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Component
 public class BookStore implements Serializable{
     Map<String, Book> bookInventory;
     private List<Order> orders;

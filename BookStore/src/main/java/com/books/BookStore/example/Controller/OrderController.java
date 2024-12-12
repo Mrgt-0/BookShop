@@ -2,10 +2,7 @@ package com.books.BookStore.example.Controller;
 
 
 import com.books.BookStore.example.DTO.OrderDTO;
-import com.books.BookStore.example.Model.Book;
-import com.books.BookStore.example.Model.Order;
-import com.books.BookStore.example.Repository.BookRepository;
-import com.books.BookStore.example.Repository.OrderRepository;
+import com.books.BookStore.example.Repository.*;
 import com.books.BookStore.example.Service.OrderService;
 import com.books.BookStore.example.Status.OrderStatus;
 import jakarta.transaction.SystemException;
@@ -17,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/orders")
 public class OrderController {
     @Autowired
-    private OrderService orderService;
+    public OrderService orderService;
     @Autowired
     private OrderRepository orderRepository;
     @Autowired

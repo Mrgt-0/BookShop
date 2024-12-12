@@ -1,5 +1,9 @@
 package com.books.BookStore.example.DI;
 
+import com.books.BookStore.example.Controller.BookStoreController;
+import com.books.BookStore.example.Model.BookStore;
+import com.books.BookStore.example.Model.BookStoreSerializable;
+import com.books.BookStore.example.Service.BookStoreService;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;

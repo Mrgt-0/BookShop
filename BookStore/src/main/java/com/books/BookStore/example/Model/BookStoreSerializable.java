@@ -3,9 +3,11 @@ package com.books.BookStore.example.Model;
 import com.books.BookStore.example.Service.BookStoreService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 
+@Component
 public class BookStoreSerializable {
     private static final String BOOKSTORE_STATE_FILE = "bookstore_state.ser";
     private static final Logger logger = LogManager.getLogger(BookStoreService.class);

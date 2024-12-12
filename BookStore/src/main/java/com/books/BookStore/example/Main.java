@@ -8,7 +8,6 @@ import org.apache.catalina.LifecycleException;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.apache.catalina.startup.Tomcat;
-
 import java.io.File;
 
 public class Main {

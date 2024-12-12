@@ -7,6 +7,7 @@ import com.books.BookStore.example.Service.BookStoreService;
 import jakarta.transaction.SystemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,13 @@ import java.util.List;
 public class BookStoreController {
     @Autowired
     BookStoreService bookStoreService;
+
+    @GetMapping("/menu")
+    public String showUserMenu(Model model) throws SystemException {
+        List<BookDTO> books = bookStoreService.listBooks();
+        model.addAttribute("books", books);
+        return "userMenu";
+    }
 
     @GetMapping
     public ResponseEntity<List<BookDTO>> getAllBooks() throws SystemException {
